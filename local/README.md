@@ -140,10 +140,16 @@ owner CLI với machine manifest đã tạo theo machine_count. Ordering activat
 là bước explicit; fresh DB khác với migration một DB đã có source cursors/backlog.
 Không dùng flag drained nếu writers thực sự chưa dừng. Không reset inbox/outbox.
 
-Đặt AI4I tại `local/.local/data/datasets/ai4i2020.csv`, policy/identity tại
-`data/fixtures/`, model bundle tại `data/models/`. Chúng không được tự phát sinh từ
-live data. Model identity phải khớp image/model thực của ML owner. Checksum file
-được kiểm ở bước prepare và init container trước khi app khởi động.
+Đặt AI4I tại `local/.local/data/datasets/ai4i2020.csv`, model identity tại
+`data/fixtures/model-identity.json`, model bundle tại `data/models/`. Chúng không
+được tự phát sinh từ live data. Model identity phải khớp image/model thực của ML
+owner. Checksum file được kiểm ở prepare và init container trước khi app chạy.
+
+RISK-POLICY-01: policy chuẩn ở app `processing/config/risk-policies/`; GitOps
+chọn app SHA/version/hashes và cấp ConfigMap. Không đặt policy chỉnh tay trong
+`data/fixtures/` hoặc profile Worker `files`. CLI prepare apps kiểm app checkout
+và truyền `--app-root` tới GitOps generator. Xem
+[policy ownership và migration](../docs/LOCAL_RISK_POLICY.md).
 
 ML inference và RAG đã có Dockerfile chạy service, được pin Python base digest
 trong app PR19. Local ML dùng `MAINTAI_LOCAL_ONLY=1` và

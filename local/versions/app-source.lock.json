@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "7c05489f705e0f55c45d03252869e27760da1c25",
-  "captured_on": "2026-10-29",
+  "source_git_sha": "e04c3a0e51fe4492994a28e85e6d36d07c7dde18",
+  "captured_on": "2026-10-30",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
     "contracts/kafka/topology.json": "04303b7d0eedd52bb1de36fc34b94e154c36055437b1ec6f0d9d88042391384b",
@@ -48,7 +48,12 @@
     "rag-service/ingestion/prepare_embedding.py": "3066f2b658e6409d980398b0682c3b258ff48334cd55181c7b5bbde6891bf85f",
     "rag-service/migrations/cli.py": "04956ca006226c3dd3eb5781c3ea1fa07fe14417b7546811a6a988314be133ad",
     "rag-service/migrations/init.sql": "bf3aa7f0ebe929714d06015373d2fa352635045f6072cad3689e6c87fb6d0d4d",
-    "storage-consumer/src/maintai_storage/catalog.py": "1da95b0751b31eb9a69ca57678ee32c43c6cbdfb570ef2b206b57aa4483a3c72"
+    "storage-consumer/src/maintai_storage/catalog.py": "1da95b0751b31eb9a69ca57678ee32c43c6cbdfb570ef2b206b57aa4483a3c72",
+    "processing/config/risk-policies/demo-risk-v1.json": "254926e93f9a9435bf938c1e4d4f605ada5415f9a024b53aaabf762e963cc588",
+    "processing/config/risk-policies/manifest.json": "6bac14fb92157b2b10f4debf6b71bfdbd2bd1543e1e6e731f5fdeb0a99e3a364",
+    "processing/config/risk-policies/risk-policy.schema.json": "fca723490dc669f864eb37c9247879bcef953440eea7cf14ae2733502579f0c3",
+    "processing/config/risk-policies/README.md": "14ee66ad9e0439b59d08ad0c56127e071b898456c6e7d68345d24e1486c874af",
+    "processing/worker/runtime.json": "90c791e124d44825f065ecc40e32644538dbdc6774ae392ee77934a39b87fc50"
   },
-  "semantics": "Reviewed committed configuration, entrypoint and build snapshot at the exact application revision. CI and local app builds verify HEAD and selected file hashes. This is not image, provider, deployment or E2E evidence; datasets and model binaries remain outside Git."
+  "semantics": "Reviewed committed interfaces, build inputs and app-owned risk-policy source at the exact Git revision. Local CI/build/prepare verify HEAD and hashes. Source is not deployment evidence; datasets, model binaries and full model identity remain separate inputs."
 }

@@ -14,7 +14,7 @@ commit đã push. Có remote không đồng nghĩa cluster đã tạo hoặc wor
 
 ## 2. App revision được đối chiếu
 
-Commit app: `7c05489f705e0f55c45d03252869e27760da1c25`. Commit này gồm Storage catalog0.2.1,
+Commit app: `e04c3a0e51fe4492994a28e85e6d36d07c7dde18`. Commit này gồm Storage catalog0.2.1,
 ML của PR15, RAG của PR16 và digest pins của PR19. ML/RAG dùng official Python
 OCI indexes theo digest; giữ Python3.12 cho ML và Python3.11 cho RAG.
 
@@ -48,7 +48,7 @@ AI4I được tải bằng downloader có checksum của Sensor, ở
 `Maint-infrastructure/local/.local/data/datasets/ai4i2020.csv` để khớp mount k3d.
 CSV, model binaries, credentials, TLS keys và private receipts không commit.
 
-Worker vẫn cần policy do nhóm chốt và full model identity khớp artifact/image.
+Worker dùng policy versioned trong app qua ConfigMap; vẫn cần full model identity khớp artifact/image.
 File thiếu không được thay bằng hash hoặc MLflow run giả. ML local prototype
 không có JWT provider production; runtime review và network boundary vẫn cần
 được operator xác nhận trước khi enable.
@@ -70,7 +70,7 @@ những luồng đó.
 
 1. Clone ba repo cạnh nhau; app checkout phải đúng SHA trong lock.
 2. Đọc runbook `Maint-infrastructure/local/README.md`; init private settings và
-   chuẩn bị dữ liệu, artifact, policy/identity, auth cùng tài nguyên laptop.
+   chuẩn bị dữ liệu, artifact, model identity, auth cùng tài nguyên laptop; chọn policy app trong GitOps.
 3. Operator tạo k3d, build/import platform images, chuẩn bị GitOps platform diff,
    push GitOps rồi bootstrap Argo. Source publication không tự chạy các bước này.
 4. Build/import app images đúng lock; chạy owner migrations/grants/provisioning
@@ -83,3 +83,10 @@ những luồng đó.
 Mọi app trong profile mẫu vẫn disabled. CI source/unit/render, image build,
 Argo health, full pipeline và benchmark là các bằng chứng khác nhau. Những file
 AWS/production được fingerprint bảo vệ vẫn giữ nguyên bytes trong lần đồng bộ này.
+
+## RISK-POLICY-01 — 30/10/2026
+
+Source lock hiện bao gồm policy/schema/catalog trong app. GitOps chọn version/hashes
+và tạo ConfigMap; infrastructure không cần private policy file. Thay đổi đang được
+phát triển trên nhánh `feat/app-owned-risk-policy`; CI remote cần app commit mới
+được push trước platform. Xem [policy runbook](LOCAL_RISK_POLICY.md).

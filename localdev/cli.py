@@ -127,9 +127,12 @@ def prepare(args):
         profile = read(Path(args.profile).resolve())
         if profile["machine_count"] != settings()["machine_count"]:
             raise ValueError("Profile count differs from the explicitly provisioned registry count")
-        for component in profile["components"].values():
+        verify_application_source(checkout("app_checkout"), read(ROOT / "local/versions/app-source.lock.json"))
+        for name, component in profile["components"].items():
             if not component.get("enabled"):
                 continue
+            if name == "processing-worker" and ("risk_policy" in component.get("files", {}) or any(Path(item["path"]).name == "risk-policy.json" for item in component.get("files", {}).values())):
+                raise ValueError("Worker policy is app-owned ConfigMap input; remove its legacy private file declaration")
             for artifact in component.get("files", {}).values():
                 relative = Path(artifact["path"]).relative_to("/local")
                 path = (LOCAL / "data" / relative).resolve(strict=True)
@@ -140,6 +143,8 @@ def prepare(args):
     command = [sys.executable, "-m", "localdev.release", args.target, "--receipts", str(bundle)]
     if args.profile:
         command += ["--profile", str(Path(args.profile).resolve())]
+    if args.target == "apps":
+        command += ["--app-root", str(checkout("app_checkout").resolve())]
     subprocess.run(command, cwd=checkout("gitops_checkout"), check=True)
     print("Prepared GitOps working files only. Review, commit and push them before Argo sync.")
 
