@@ -51,3 +51,6 @@ Start with [local runbook](local/README.md).
 
 See [source synchronization and publication](docs/LOCAL_SOURCE_SYNC.md) for the
 current app lock, public GitOps URL and remaining demo runtime inputs.
+
+[App-owned risk policy](docs/LOCAL_RISK_POLICY.md): operator chuyển app source tới
+GitOps; policy được cấp bằng ConfigMap, không là private infrastructure input.

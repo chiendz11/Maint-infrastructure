@@ -14,8 +14,8 @@ commit đã push. Có remote không đồng nghĩa cluster đã tạo hoặc wor
 
 ## 2. App revision được đối chiếu
 
-Commit app: `7c05489f705e0f55c45d03252869e27760da1c25`. Commit này gồm Storage catalog0.2.1,
-ML của PR15, RAG của PR16 và digest pins của PR19. ML/RAG dùng official Python
+Commit app: `20ea012eb6b69746d69eabb262d03b50376ffb08`. Commit này gồm Storage catalog0.2.1,
+ML của PR15, RAG của PR16, digest pins của PR19 và Groq/demo preparation của PR20. ML/RAG dùng official Python
 OCI indexes theo digest; giữ Python3.12 cho ML và Python3.11 cho RAG.
 
 Hai bản app-source lock phải giống từng byte:
@@ -48,29 +48,24 @@ AI4I được tải bằng downloader có checksum của Sensor, ở
 `Maint-infrastructure/local/.local/data/datasets/ai4i2020.csv` để khớp mount k3d.
 CSV, model binaries, credentials, TLS keys và private receipts không commit.
 
-Worker vẫn cần policy do nhóm chốt và full model identity khớp artifact/image.
+Worker dùng policy versioned trong app qua ConfigMap; vẫn cần full model identity khớp artifact/image.
 File thiếu không được thay bằng hash hoặc MLflow run giả. ML local prototype
 không có JWT provider production; runtime review và network boundary vẫn cần
 được operator xác nhận trước khi enable.
 
-## 4. RAG sau PR16
+## 4. RAG dùng Groq và knowledge Job
 
-RAG có HTTP API, probes, migration CLI và knowledge ingestion CLI. Muốn chạy thật
-cần: Secret DATABASE_URL; schema knowledge_db; PDF đã ingest; embedding cache;
-OLLAMA_BASE_URL tới Ollama trên laptop; model Ollama đã tải. Có thể khai báo URL
-host bridge và model names trong component env; database URI chỉ lấy từ Secret.
-Không dùng localhost của Pod để chỉ Ollama trên laptop.
-
-`owner_input_required` trong catalog tiếp tục yêu cầu review runtime inputs và
-image receipts, không có nghĩa ML/RAG còn là skeleton. Copilot Business M7,
-Drift adapter và training vẫn là phần việc riêng; publish source không hoàn tất
-những luồng đó.
+RAG gọi Groq HTTPS; không cần Ollama/model Qwen. Scoped Secret rag-groq chứa
+GROQ_API_KEY. Cache embedding MiniLM ở PVC writable chung cho preparation Job
+và RAG. Job pin revision/PDF, migrate và ingest rồi kiểm retrieval; receipt
+private là gate trước enable RAG. Xem [demo preparation](LOCAL_DEMO_PREPARATION.md).
+Business Copilot M7 vẫn là integration độc lập.
 
 ## 5. Trình tự sau khi source đã push
 
 1. Clone ba repo cạnh nhau; app checkout phải đúng SHA trong lock.
 2. Đọc runbook `Maint-infrastructure/local/README.md`; init private settings và
-   chuẩn bị dữ liệu, artifact, policy/identity, auth cùng tài nguyên laptop.
+   chuẩn bị dữ liệu, artifact, model identity, auth cùng tài nguyên laptop; chọn policy app trong GitOps.
 3. Operator tạo k3d, build/import platform images, chuẩn bị GitOps platform diff,
    push GitOps rồi bootstrap Argo. Source publication không tự chạy các bước này.
 4. Build/import app images đúng lock; chạy owner migrations/grants/provisioning
@@ -83,3 +78,10 @@ những luồng đó.
 Mọi app trong profile mẫu vẫn disabled. CI source/unit/render, image build,
 Argo health, full pipeline và benchmark là các bằng chứng khác nhau. Những file
 AWS/production được fingerprint bảo vệ vẫn giữ nguyên bytes trong lần đồng bộ này.
+
+## RISK-POLICY-01 — 30/10/2026
+
+Source lock hiện bao gồm policy/schema/catalog trong app. GitOps chọn version/hashes
+và tạo ConfigMap; infrastructure không cần private policy file. Thay đổi đang được
+phát triển trên nhánh `feat/app-owned-risk-policy`; CI remote cần app commit mới
+được push trước platform. Xem [policy runbook](LOCAL_RISK_POLICY.md).
