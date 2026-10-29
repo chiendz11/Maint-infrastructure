@@ -14,8 +14,8 @@ commit đã push. Có remote không đồng nghĩa cluster đã tạo hoặc wor
 
 ## 2. App revision được đối chiếu
 
-Commit app: `e04c3a0e51fe4492994a28e85e6d36d07c7dde18`. Commit này gồm Storage catalog0.2.1,
-ML của PR15, RAG của PR16 và digest pins của PR19. ML/RAG dùng official Python
+Commit app: `20ea012eb6b69746d69eabb262d03b50376ffb08`. Commit này gồm Storage catalog0.2.1,
+ML của PR15, RAG của PR16, digest pins của PR19 và Groq/demo preparation của PR20. ML/RAG dùng official Python
 OCI indexes theo digest; giữ Python3.12 cho ML và Python3.11 cho RAG.
 
 Hai bản app-source lock phải giống từng byte:
@@ -53,18 +53,13 @@ File thiếu không được thay bằng hash hoặc MLflow run giả. ML local 
 không có JWT provider production; runtime review và network boundary vẫn cần
 được operator xác nhận trước khi enable.
 
-## 4. RAG sau PR16
+## 4. RAG dùng Groq và knowledge Job
 
-RAG có HTTP API, probes, migration CLI và knowledge ingestion CLI. Muốn chạy thật
-cần: Secret DATABASE_URL; schema knowledge_db; PDF đã ingest; embedding cache;
-OLLAMA_BASE_URL tới Ollama trên laptop; model Ollama đã tải. Có thể khai báo URL
-host bridge và model names trong component env; database URI chỉ lấy từ Secret.
-Không dùng localhost của Pod để chỉ Ollama trên laptop.
-
-`owner_input_required` trong catalog tiếp tục yêu cầu review runtime inputs và
-image receipts, không có nghĩa ML/RAG còn là skeleton. Copilot Business M7,
-Drift adapter và training vẫn là phần việc riêng; publish source không hoàn tất
-những luồng đó.
+RAG gọi Groq HTTPS; không cần Ollama/model Qwen. Scoped Secret rag-groq chứa
+GROQ_API_KEY. Cache embedding MiniLM ở PVC writable chung cho preparation Job
+và RAG. Job pin revision/PDF, migrate và ingest rồi kiểm retrieval; receipt
+private là gate trước enable RAG. Xem [demo preparation](LOCAL_DEMO_PREPARATION.md).
+Business Copilot M7 vẫn là integration độc lập.
 
 ## 5. Trình tự sau khi source đã push
 

@@ -46,7 +46,8 @@ def check(app=None, companion=None):
     if companion:
         pairs = [("local/versions/app-source.lock.json", "config/local/app-source.lock.json"),
                  ("local/config/contract.json", "config/local/contract.json"), ("local/config/runtime-catalog.json", "config/local/runtime-catalog.json"),
-                 ("local/config/buckets.json", "config/local/buckets.json"), ("local/versions/platform.lock.json", "config/local/platform.lock.json")]
+                 ("local/config/buckets.json", "config/local/buckets.json"), ("local/versions/platform.lock.json", "config/local/platform.lock.json"),
+                 ("local/config/rag-runtime.json", "config/local/rag-runtime.json")]
         pairs += [("contracts/local/" + p.name, "contracts/local/" + p.name) for p in (ROOT / "contracts/local").glob("*.json")]
         for left, right in pairs:
             if (ROOT / left).read_bytes() != (companion / right).read_bytes():

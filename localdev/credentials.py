@@ -17,10 +17,11 @@ ROLES = tuple(name + "_owner" for name in OWNERS) + (
 def initialize():
     LOCAL.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(LOCAL, 0o700)
-    for area in ("state", "data/datasets", "data/models", "data/fixtures", "receipts", "tls"):
+    for area in ("state", "data/datasets", "data/models", "data/fixtures", "receipts", "tls", "secrets"):
         (LOCAL / area).mkdir(parents=True, exist_ok=True, mode=0o700)
     for area in ("data", "data/datasets", "data/models", "data/fixtures"):
         os.chmod(LOCAL / area, 0o755)
+    os.chmod(LOCAL / "secrets", 0o700)
     if not (LOCAL / "settings.json").exists():
         write_json(LOCAL / "settings.json", read(ROOT / "local/config/settings.example.json"))
     if not (LOCAL / "credentials.json").exists():
@@ -104,4 +105,28 @@ def install_secrets():
     certificates()
     apply([{"apiVersion": "v1", "kind": "Namespace", "metadata": {"name": NAMESPACE}}])
     apply(secret_resources())
+    install_groq_secret(required=False)
     print("Local secrets installed through stdin. No secret values were printed or committed.")
+
+
+def groq_secret_resource(required=True):
+    """Read only the operator's private file, never an environment/chat fallback."""
+    path = LOCAL / "secrets/groq-api-key"
+    if not path.exists():
+        if required:
+            raise ValueError("Store a new Groq key in private local/.local/secrets/groq-api-key first")
+        return None
+    if path.is_symlink() or not path.resolve().is_relative_to(LOCAL.resolve()) or not path.is_file() or path.stat().st_mode & 0o077:
+        raise ValueError("Groq key must be a private regular file (chmod 600)")
+    with path.open() as stream:
+        value = stream.read(16385).strip()
+    if not value.startswith("gsk_") or len(value) > 16384 or any(char.isspace() for char in value):
+        raise ValueError("Groq credential file is invalid")
+    return resource("rag-groq", {"GROQ_API_KEY": value})
+
+
+def install_groq_secret(required=True):
+    document = groq_secret_resource(required=required)
+    if document is not None:
+        apply([document])
+        print("Scoped rag-groq Secret installed; restart RAG after credential rotation.")

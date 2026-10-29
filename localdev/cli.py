@@ -16,7 +16,8 @@ import yaml
 from .common import (CONTEXT, CONTRACT, LOCAL, NAMESPACE, ROOT, apply, checkout, digest,
                      kube, private_write, read, repository_url, run, settings,
                      source_identity, validate_context, write_json, require_pinned_bases)
-from .credentials import initialize, install_secrets
+from .credentials import initialize, install_secrets, install_groq_secret, groq_secret_resource
+from .demo import model_identity, prepare_rag
 from .checks import verify_application_source
 
 
@@ -131,6 +132,11 @@ def prepare(args):
         for name, component in profile["components"].items():
             if not component.get("enabled"):
                 continue
+            if name == "rag-service":
+                groq_secret_resource(required=True)
+                proof = read(LOCAL / "rag-knowledge-receipt.json")
+                if proof.get("source_git_sha") != receipts[name]["source_git_sha"] or proof.get("image_id") != receipts[name]["image_id"] or not proof.get("documents") or any(item.get("stored_chunks", 0) < 1 for item in proof["documents"]):
+                    raise ValueError("RAG requires a successful knowledge preparation receipt for the selected image")
             if name == "processing-worker" and ("risk_policy" in component.get("files", {}) or any(Path(item["path"]).name == "risk-policy.json" for item in component.get("files", {}).values())):
                 raise ValueError("Worker policy is app-owned ConfigMap input; remove its legacy private file declaration")
             for artifact in component.get("files", {}).values():
@@ -311,7 +317,7 @@ def submit_training(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="MaintAI local k3d bootstrap; no Terraform/AWS execution")
     sub = parser.add_subparsers(dest="operation", required=True)
-    for name in ("init", "up", "secrets", "bootstrap-argocd", "status", "stop", "start", "grants", "provision", "smoke-kafka"):
+    for name in ("init", "up", "secrets", "groq-secret", "model-identity", "prepare-rag", "bootstrap-argocd", "status", "stop", "start", "grants", "provision", "smoke-kafka"):
         sub.add_parser(name)
     for name in ("build", "build-platform"):
         command = sub.add_parser(name); command.add_argument("--allow-dirty", action="store_true")
@@ -330,6 +336,9 @@ def main(argv=None):
             print("Private local settings initialized; existing credentials preserved.")
         elif args.operation == "up": up()
         elif args.operation == "secrets": install_secrets()
+        elif args.operation == "groq-secret": install_groq_secret()
+        elif args.operation == "model-identity": model_identity()
+        elif args.operation == "prepare-rag": prepare_rag()
         elif args.operation == "build": build(args)
         elif args.operation == "build-platform": build_platform(args)
         elif args.operation == "import-images": import_images(args)

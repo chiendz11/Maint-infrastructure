@@ -153,7 +153,7 @@
       "source_status": "owner_input_required",
       "default_enabled": false,
       "migration": null,
-      "implementation_note": "PR16 RAG HTTP runtime with migration/ingestion CLI and health probes; PR19 pins the Python base. Knowledge, embedding cache, Ollama, scoped DB configuration and runtime review remain required. Business Copilot M7 is separate."
+      "implementation_note": "Groq API generation; scoped rag-groq Secret, shared writable embedding PVC and explicit knowledge-owner preparation Job. Business Copilot M7 remains separate."
     },
     "drift-worker": {
       "dockerfile": "drift-worker/Dockerfile",

@@ -154,8 +154,8 @@ và truyền `--app-root` tới GitOps generator. Xem
 ML inference và RAG đã có Dockerfile chạy service, được pin Python base digest
 trong app PR19. Local ML dùng `MAINTAI_LOCAL_ONLY=1` và
 `MODEL_DIR=/local/models/logreg-baseline-v0`; đây là baseline local, không có JWT
-provider production. RAG cần DB schema, knowledge đã ingest, embedding cache và
-Ollama/model trên laptop. Hai component vẫn cần runtime review và receipts thật.
+provider production. RAG dùng Groq API; cần Secret rag-groq, knowledge đã ingest và writable
+embedding cache PVC dùng chung với owner Job. Xem docs/LOCAL_DEMO_PREPARATION.md. Hai component vẫn cần runtime review và receipts thật.
 Training Dockerfile còn placeholder; Drift còn cần pin base/review adapter; MLflow
 cần reviewed base/server/SDK pins. Build từ chối FROM chưa khóa digest và app
 checkout khác source lock. `--allow-dirty` chỉ ghi nhận thay đổi source ngoài
@@ -215,3 +215,10 @@ CI được thêm source/contract/private-state tests; GitOps thêm Kustomize re
 local và production bằng kubectl khóa checksum. Chưa chạy các checks đó trong
 lượt code-first này. Khi được yêu cầu kiểm chứng, chạy từng tầng offline → images
 → cluster/platform → owner jobs → app E2E; ghi evidence riêng từng tầng.
+
+## Demo preparation — 30/10
+
+Sau build ML/Worker: `python -m localdev model-identity`. Sau platform sync và
+import RAG: `python -m localdev prepare-rag`. Groq key mới lưu private mode0600
+rồi cấp bằng `python -m localdev groq-secret`. Chi tiết tại
+[demo preparation](../docs/LOCAL_DEMO_PREPARATION.md). Không tự bật app workloads.
