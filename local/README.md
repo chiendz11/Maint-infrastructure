@@ -5,10 +5,12 @@ vẫn sở hữu AWS; `local/` không gọi Terraform hoặc AWS. GitOps sở h�
 trong cluster, gồm Kafka/PostgreSQL/MinIO, monitoring và ứng dụng. Hai ZIP chỉ là
 nguồn tham khảo; không giải nén đè, không dùng entrypoint hoặc config DTO cũ.
 
-**Trạng thái bàn giao: đã viết source/config/CI; chưa chạy tests, build, render,
-Docker, k3d, Argo CD, Terraform hoặc E2E.** Các lệnh dưới là runbook cho operator,
-không phải lịch sử đã thực hiện. Pin metadata được đọc từ nguồn upstream; điều đó
-không chứng minh image đã chạy hoặc phiên bản tương thích.
+**Trạng thái 29/10: source đã public; CI đã chạy source/unit checks và xác minh
+app revision/checksums.** Xem [CI](https://github.com/chiendz11/Maint-infrastructure/actions/workflows/ci.yml)
+và [source sync](../docs/LOCAL_SOURCE_SYNC.md). Image builds, k3d, Argo bootstrap,
+Terraform và E2E chưa được chạy trong đợt publication. Các lệnh dưới là runbook
+cho operator, không phải lịch sử đã thực hiện. Pin metadata không chứng minh
+image đã chạy hoặc phiên bản tương thích.
 
 ## 1. Bản đồ công việc
 

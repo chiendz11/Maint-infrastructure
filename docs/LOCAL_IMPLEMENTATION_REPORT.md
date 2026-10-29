@@ -1,5 +1,10 @@
 # Bàn giao local k3d + Argo CD + GitOps
 
+> Báo cáo dưới đây ghi nhận đợt authoring ban đầu, khi chưa chạy CI. Trạng thái
+> sau publication29/10: source đã public và CI source/unit/app-lock đã thành
+> công; xem [source sync](LOCAL_SOURCE_SYNC.md) và GitHub Actions. Cluster,
+> image receipts và E2E vẫn cần operator thực hiện, không suy ra từ CI.
+
 ## 1. Kết quả và phạm vi
 
 Đã bổ sung local development trực tiếp vào hai repo, dùng ZIP làm tham khảo và
