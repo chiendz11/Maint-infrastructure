@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0.0",
+  "version": "1.0.0",
+  "as_of": "2026-10-29",
+  "k3d_version": "5.9.0",
+  "kubernetes_version": "1.35.5",
+  "images": {
+    "k3s": {
+      "tag": "rancher/k3s:v1.35.5-k3s1",
+      "image": "rancher/k3s:v1.35.5-k3s1@sha256:2074403abe1bded11ef3dde09d457e13be8e0b64c218b1c4f8269b4565cfbc65",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      ]
+    },
+    "kafka": {
+      "tag": "apache/kafka:4.0.0",
+      "image": "apache/kafka:4.0.0@sha256:3f7b939115cd4872e9cee9369d80bd69712fde55f9902f46d793f64848dedc75",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      ]
+    },
+    "postgres": {
+      "tag": "pgvector/pgvector:0.8.0-pg17",
+      "image": "pgvector/pgvector:0.8.0-pg17@sha256:40b404964359299eefdd5f8518facf1886c562848cf4de13b6eaf91cb70c2b87",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      ]
+    },
+    "prometheus": {
+      "tag": "prom/prometheus:v3.5.0",
+      "image": "prom/prometheus:v3.5.0@sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      ]
+    },
+    "grafana": {
+      "tag": "grafana/grafana:12.2.0",
+      "image": "grafana/grafana:12.2.0@sha256:74144189b38447facf737dfd0f3906e42e0776212bf575dc3334c3609183adf7",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      ]
+    },
+    "pushgateway": {
+      "tag": "prom/pushgateway:v1.11.1",
+      "image": "prom/pushgateway:v1.11.1@sha256:03738d278e082ee9821df730c741b3b465c251fc2b68a85883def301a55a6215",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux",
+          "variant": "v8"
+        }
+      ]
+    },
+    "go": {
+      "tag": "library/golang:1.24.6-bookworm",
+      "image": "library/golang:1.24.6-bookworm@sha256:ab1d1823abb55a9504d2e3e003b75b36dbeb1cbcc4c92593d85a84ee46becc6c",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux",
+          "variant": "v8"
+        }
+      ]
+    },
+    "debian": {
+      "tag": "library/debian:bookworm-slim",
+      "image": "library/debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux",
+          "variant": "v8"
+        }
+      ]
+    },
+    "minio": {
+      "tag": "maintai-local/minio:src-1a63209927b9d1fb239b2a776b7b01d1902eff19379a108f4bc7005edcc0968c",
+      "image": "maintai-local/minio:src-1a63209927b9d1fb239b2a776b7b01d1902eff19379a108f4bc7005edcc0968c",
+      "source_url": "https://codeload.github.com/minio/minio/tar.gz/refs/tags/RELEASE.2025-04-22T22-12-26Z",
+      "source_sha256": "1a63209927b9d1fb239b2a776b7b01d1902eff19379a108f4bc7005edcc0968c",
+      "source_version": "RELEASE.2025-04-22T22-12-26Z",
+      "dockerfile": "local/images/minio.Dockerfile",
+      "local_build_required": true
+    },
+    "mc": {
+      "tag": "maintai-local/mc:src-526ec538e7f83e4bfa631788129b08ec85898ca572ce0523ebf9a597946bea27",
+      "image": "maintai-local/mc:src-526ec538e7f83e4bfa631788129b08ec85898ca572ce0523ebf9a597946bea27",
+      "source_url": "https://codeload.github.com/minio/mc/tar.gz/refs/tags/RELEASE.2025-04-16T18-13-26Z",
+      "source_sha256": "526ec538e7f83e4bfa631788129b08ec85898ca572ce0523ebf9a597946bea27",
+      "source_version": "RELEASE.2025-04-16T18-13-26Z",
+      "dockerfile": "local/images/mc.Dockerfile",
+      "local_build_required": true
+    },
+    "python": {
+      "image": "python:3.12-slim-bookworm@sha256:6a0e06f5ba0b373d051aabd3fffb9b873f27f9a2a3a14bcbe37dee6f0e3bbc70"
+    },
+    "nginx": {
+      "image": "nginxinc/nginx-unprivileged:stable-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03"
+    },
+    "keycloak": {
+      "image": "quay.io/keycloak/keycloak:26.4.0@sha256:5f3fb534cde6bf006d79f5912473e5d2c828c707cdfc52e16972803aca9d43dd",
+      "manifest_url": "https://quay.io/v2/keycloak/keycloak/manifests/26.4.0"
+    }
+  },
+  "notes": [
+    "Development-only pins; copied existing reviewed source pins and resolved Keycloak/Argo manifest bytes read-only. No build, pull, compatibility test or cluster deployment performed.",
+    "MinIO/MC require explicit source builds and image-ID receipts. MLflow/training/inference remain app-owned and gated."
+  ],
+  "k3d_schema": {
+    "path": "versions/k3d-v1alpha5.schema.json",
+    "source_url": "https://raw.githubusercontent.com/k3d-io/k3d/v5.9.0/pkg/config/v1alpha5/schema.json",
+    "sha256": "fb1d8573831a3d160f135bb6a813c7bbea837d0901dcee58c209c22be4e8e6d8"
+  },
+  "argocd": {
+    "version": "3.2.0",
+    "url": "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/install.yaml",
+    "sha256": "51299a0ff760849a4b92bb6c0044875bc17f0725c0a475203cd555457b2e38a4",
+    "docker_content_digest": null,
+    "size": 1468848,
+    "images": {
+      "ghcr.io/dexidp/dex:v2.43.0": "ghcr.io/dexidp/dex:v2.43.0@sha256:b08a58c9731c693b8db02154d7afda798e1888dc76db30d34c4a0d0b8a26d913",
+      "public.ecr.aws/docker/library/redis:8.2.2-alpine": "public.ecr.aws/docker/library/redis:8.2.2-alpine@sha256:59b6e694653476de2c992937ebe1c64182af4728e54bb49e9b7a6c26614d8933",
+      "quay.io/argoproj/argocd:v3.2.0": "quay.io/argoproj/argocd:v3.2.0@sha256:3c9b3b33a7e6c9c56a9d8417af1845afc516f714941962208b125017bbc1e4b1"
+    },
+    "image_pins_complete": true
+  },
+  "kubectl": {
+    "version": "1.35.5",
+    "linux_amd64_url": "https://dl.k8s.io/release/v1.35.5/bin/linux/amd64/kubectl",
+    "sha256": "90f75ea6ecc9ea5633262e1c0b83a40560003b30fc94a04cb099404fcef0c224"
+  }
+}

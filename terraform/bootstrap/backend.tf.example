@@ -1,0 +1,7 @@
+terraform {
+  backend "s3" {
+    key = "maintai-v13/bootstrap.tfstate"
+    use_lockfile = true
+    encrypt = true
+  }
+}

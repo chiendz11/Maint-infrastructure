@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "captured_on": "2026-10-18",
+  "references": [
+    {
+      "repository": "https://github.com/chiendz11/iris-gitops",
+      "ref": "main",
+      "commit": "ed951731ce378a6468bf01e4bb80376b8e39872a"
+    },
+    {
+      "repository": "https://github.com/chiendz11/iris-infrastructure",
+      "ref": "main",
+      "commit": "6c661a6eee543ac23dd9d998ceef59b3e3804929"
+    }
+  ],
+  "application_contract_revision": "1.3.1",
+  "local_architecture_decision": "simulator-ui-direct-control-2026-10-18",
+  "validation_status": "NOT_RUN_USER_REQUEST",
+  "amended_on": "2026-10-23",
+  "current_application_target": {
+    "revision": "1.4.0",
+    "decision": "PROC-ORDER-01/1.0.0",
+    "implementation_report": "../MaintAI/docs/PROCESSING_ORDERING_IMPLEMENTATION_REPORT.md",
+    "sdk_version": "0.2.0",
+    "kafka_bundle_version": "1.1.0",
+    "platform_full_migration": false
+  }
+}

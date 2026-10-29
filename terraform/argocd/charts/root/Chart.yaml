@@ -1,0 +1,5 @@
+apiVersion: v2
+name: maintai-root
+description: Ordered Terraform-owned Argo CD root Application
+version: 1.0.0
+type: application

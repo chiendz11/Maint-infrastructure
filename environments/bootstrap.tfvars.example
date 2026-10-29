@@ -1,0 +1,5 @@
+state_bucket_name = "REPLACE_WITH_GLOBALLY_UNIQUE_STATE_BUCKET"
+github_owner = "chiendz11"
+infrastructure_repository = "Maint-infrastructure"
+# Reuse an existing GitHub OIDC provider in the AWS account if one already exists.
+existing_github_oidc_provider_arn = null

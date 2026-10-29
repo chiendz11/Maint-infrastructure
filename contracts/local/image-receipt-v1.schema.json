@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:maintai:local-image-receipt:1.0.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "component",
+    "image",
+    "image_id",
+    "source_git_sha",
+    "source_dirty",
+    "source_snapshot_sha256",
+    "dockerfile",
+    "dockerfile_sha256",
+    "build_context"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "component": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "image": {
+      "type": "string",
+      "pattern": "^maintai-local/[a-z0-9-]+:image-[0-9a-f]{64}$"
+    },
+    "image_id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "source_git_sha": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "source_dirty": {
+      "type": "boolean"
+    },
+    "source_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "dockerfile": {
+      "type": "string"
+    },
+    "dockerfile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "build_context": {
+      "type": "string"
+    },
+    "imported_context": {
+      "const": "k3d-maintai-local"
+    }
+  },
+  "additionalProperties": false
+}

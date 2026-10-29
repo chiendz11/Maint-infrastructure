@@ -1,0 +1,1093 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:maintai:local-profile:1.0.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "namespace",
+    "machine_count",
+    "components",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "namespace": {
+      "const": "maintai-local"
+    },
+    "machine_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "components": {
+      "type": "object",
+      "required": [
+        "ingestion-api",
+        "processing-worker",
+        "processing-read-api",
+        "processing-outbox-relay",
+        "business-api",
+        "business-consumer",
+        "storage-consumer",
+        "sensor",
+        "frontend",
+        "simulator-ui",
+        "ml-service",
+        "rag-service",
+        "drift-worker",
+        "mlflow",
+        "training"
+      ],
+      "properties": {
+        "ingestion-api": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "processing-worker": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "processing-read-api": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "processing-outbox-relay": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "business-api": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "business-consumer": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "storage-consumer": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "sensor": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "frontend": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "simulator-ui": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ml-service": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "rag-service": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "drift-worker": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "mlflow": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "training": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "image",
+            "receipt",
+            "env",
+            "files",
+            "runtime_reviewed"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "receipt": {
+              "type": [
+                "string",
+                "object",
+                "null"
+              ]
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "files": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "runtime_reviewed": {
+              "type": "boolean"
+            },
+            "schedule": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "schedule_enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "owner_migrations_applied",
+        "runtime_grants_applied",
+        "machines_provisioned",
+        "ordering_activated",
+        "model_identity_reviewed",
+        "dataset_reviewed",
+        "mlflow_compatibility_reviewed"
+      ],
+      "properties": {
+        "owner_migrations_applied": {
+          "type": "boolean"
+        },
+        "runtime_grants_applied": {
+          "type": "boolean"
+        },
+        "machines_provisioned": {
+          "type": "boolean"
+        },
+        "ordering_activated": {
+          "type": "boolean"
+        },
+        "model_identity_reviewed": {
+          "type": "boolean"
+        },
+        "dataset_reviewed": {
+          "type": "boolean"
+        },
+        "mlflow_compatibility_reviewed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

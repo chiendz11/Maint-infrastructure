@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maintai.invalid/contracts/platform-contract-v2.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "environment": {
+      "const": "production"
+    },
+    "architecture_revision": {
+      "const": "maintai-1.3.1+simulator-ui.1"
+    },
+    "aws": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "type": "string",
+          "pattern": "^[0-9]{12}$"
+        },
+        "region": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "account_id",
+        "region"
+      ]
+    },
+    "cluster": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vpc_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "vpc_id"
+      ]
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "type": "string",
+          "minLength": 1
+        },
+        "port": {
+          "const": 5432
+        },
+        "logical_databases": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "processing": {
+              "const": "processing_db"
+            },
+            "business": {
+              "const": "business_db"
+            },
+            "drift": {
+              "const": "drift_db"
+            },
+            "mlflow": {
+              "const": "mlflow_db"
+            },
+            "knowledge": {
+              "const": "knowledge_db"
+            }
+          },
+          "required": [
+            "processing",
+            "business",
+            "drift",
+            "mlflow",
+            "knowledge"
+          ]
+        },
+        "pgvector_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "master_secret_arn": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "host",
+        "port",
+        "logical_databases",
+        "pgvector_version",
+        "master_secret_arn"
+      ]
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "datasets": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifacts": {
+          "type": "string",
+          "minLength": 1
+        },
+        "raw": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "datasets",
+        "artifacts",
+        "raw",
+        "knowledge"
+      ]
+    },
+    "kms_key_arn": {
+      "type": "string",
+      "minLength": 1
+    },
+    "training": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "queue_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "queue_arn": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ledger_table": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "queue_name",
+        "queue_arn",
+        "ledger_table"
+      ]
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minProperties": 1
+    },
+    "publishers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "app": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gitops": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reader": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "app",
+        "gitops",
+        "reader",
+        "dataset"
+      ]
+    },
+    "images": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9]{12}\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/[a-z0-9/_-]+$"
+      },
+      "minProperties": 1
+    },
+    "secrets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^arn:aws:secretsmanager:"
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hosted_zone_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "certificate_arn": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "domain",
+        "hosted_zone_id",
+        "certificate_arn"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "environment",
+    "architecture_revision",
+    "aws",
+    "cluster",
+    "database",
+    "storage",
+    "kms_key_arn",
+    "training",
+    "roles",
+    "publishers",
+    "images",
+    "secrets",
+    "ingress"
+  ]
+}

@@ -1,0 +1,20 @@
+aws_region = "ap-southeast-1"
+kubernetes_version = "1.33"
+node_desired_size = 3
+node_instance_types = ["m6i.xlarge"]
+# Resolve region-supported builds as a reviewed operator task before using Terraform.
+node_ami_release_version = "REPLACE_WITH_EXACT_AL2023_RELEASE"
+eks_addon_versions = {
+  coredns = "REPLACE_WITH_EXACT_EKS_BUILD"
+  kube-proxy = "REPLACE_WITH_EXACT_EKS_BUILD"
+  vpc-cni = "REPLACE_WITH_EXACT_EKS_BUILD"
+  aws-ebs-csi-driver = "REPLACE_WITH_EXACT_EKS_BUILD"
+}
+postgres_engine_version = "REPLACE_WITH_POSTGRES_17_MINOR"
+pgvector_extension_version = "REPLACE_WITH_RDS_SUPPORTED_VECTOR_VERSION"
+cluster_public_access_cidrs = ["REPLACE_WITH_OPERATOR_AND_CI_EGRESS_CIDRS"]
+operator_role_arns = ["REPLACE_WITH_OPERATOR_ROLE_ARN"]
+terraform_apply_role_arn = "REPLACE_WITH_BOOTSTRAP_APPLY_ROLE_ARN"
+github_oidc_provider_arn = "REPLACE_WITH_GITHUB_OIDC_PROVIDER_ARN"
+state_bucket = "REPLACE_WITH_STATE_BUCKET"
+state_kms_key_arn = "REPLACE_WITH_STATE_KMS_KEY_ARN"

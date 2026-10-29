@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0.0",
+  "components": {
+    "ingestion-api": {
+      "dockerfile": "ingestion-api/Dockerfile",
+      "context": ".",
+      "command": [
+        "maintai-ingestion"
+      ],
+      "port": 8000,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "processing-worker": {
+      "dockerfile": "processing/worker/Dockerfile",
+      "context": ".",
+      "command": [
+        "maintai-processing-worker"
+      ],
+      "port": 8081,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": {
+        "command": [
+          "maintai-processing-migrate",
+          "upgrade"
+        ],
+        "database_env": "PROCESSING_DATABASE_URL",
+        "owner": "processing"
+      }
+    },
+    "processing-read-api": {
+      "dockerfile": "processing/read-api/Dockerfile",
+      "context": ".",
+      "command": [
+        "maintai-processing-read-api"
+      ],
+      "port": 8004,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "processing-outbox-relay": {
+      "dockerfile": "processing/outbox-relay/Dockerfile",
+      "context": ".",
+      "command": [
+        "maintai-processing-relay"
+      ],
+      "port": 8082,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "business-api": {
+      "dockerfile": "backend/business-api/Dockerfile",
+      "context": ".",
+      "command": [
+        "maintai-business-api"
+      ],
+      "port": 8003,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": {
+        "command": [
+          "maintai-business-migrate",
+          "upgrade"
+        ],
+        "database_env": "BUSINESS_DATABASE_URL",
+        "owner": "business"
+      }
+    },
+    "business-consumer": {
+      "dockerfile": "backend/business-consumer/Dockerfile",
+      "context": ".",
+      "command": [
+        "maintai-business-consumer"
+      ],
+      "port": 8083,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "storage-consumer": {
+      "dockerfile": "storage-consumer/Dockerfile",
+      "context": ".",
+      "command": [
+        "maintai-storage",
+        "serve"
+      ],
+      "port": 8008,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "sensor": {
+      "dockerfile": "sensor/Dockerfile",
+      "context": "sensor",
+      "command": [
+        "maintai-sensor",
+        "serve"
+      ],
+      "port": 8005,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "frontend": {
+      "dockerfile": "frontend/Dockerfile",
+      "context": ".",
+      "command": null,
+      "port": 8080,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "simulator-ui": {
+      "dockerfile": "sensor-simulator-UI/Dockerfile",
+      "context": "sensor-simulator-UI",
+      "command": null,
+      "port": 8080,
+      "kind": "Deployment",
+      "source_status": "implemented",
+      "default_enabled": false,
+      "migration": null
+    },
+    "ml-service": {
+      "dockerfile": "ml-service/inference/Dockerfile",
+      "context": ".",
+      "command": null,
+      "port": 8001,
+      "kind": "Deployment",
+      "source_status": "owner_input_required",
+      "default_enabled": false,
+      "migration": null,
+      "implementation_note": "PR15 local baseline HTTP runtime; PR19 pins the Python base. Operator review, verified model bundle, local-only configuration and real image/import receipts are still required."
+    },
+    "rag-service": {
+      "dockerfile": "rag-service/Dockerfile",
+      "context": ".",
+      "command": null,
+      "port": 8002,
+      "kind": "Deployment",
+      "source_status": "owner_input_required",
+      "default_enabled": false,
+      "migration": null,
+      "implementation_note": "PR16 RAG HTTP runtime with migration/ingestion CLI and health probes; PR19 pins the Python base. Knowledge, embedding cache, Ollama, scoped DB configuration and runtime review remain required. Business Copilot M7 is separate."
+    },
+    "drift-worker": {
+      "dockerfile": "drift-worker/Dockerfile",
+      "context": "drift-worker",
+      "command": [
+        "maintai-drift",
+        "run",
+        "--config",
+        "/local/fixtures/drift.yaml"
+      ],
+      "port": null,
+      "kind": "Job",
+      "source_status": "owner_input_required",
+      "default_enabled": false,
+      "migration": null
+    },
+    "mlflow": {
+      "dockerfile": "ml-service/mlflow/Dockerfile",
+      "context": "ml-service/mlflow",
+      "command": null,
+      "port": 5000,
+      "kind": "Deployment",
+      "source_status": "owner_input_required",
+      "default_enabled": false,
+      "migration": null
+    },
+    "training": {
+      "dockerfile": "ml-service/training/Dockerfile",
+      "context": ".",
+      "command": null,
+      "port": null,
+      "kind": "Job",
+      "source_status": "owner_input_required",
+      "default_enabled": false,
+      "migration": null
+    }
+  }
+}

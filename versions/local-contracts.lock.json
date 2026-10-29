@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0.0",
+  "sha256": {
+    "image-receipt-v1.schema.json": "57174abe3774e8b4d8733a10ec23c1e8e672ffed95bb9341d7310800e5f1e309",
+    "local-profile-v1.schema.json": "a2afee59320e14b60b3a54191347ce0eccb437ae748133d79e07bf6a566085e3"
+  }
+}

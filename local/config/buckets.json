@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0.0",
+  "buckets": [
+    "maintai-raw",
+    "maintai-processed",
+    "maintai-models",
+    "maintai-approved",
+    "maintai-manuals",
+    "maintai-drift",
+    "maintai-mlflow"
+  ],
+  "users": {
+    "storage": {
+      "read": [
+        "maintai-raw"
+      ],
+      "write": [
+        "maintai-raw"
+      ]
+    },
+    "processing": {
+      "read": [
+        "maintai-processed"
+      ],
+      "write": [
+        "maintai-processed"
+      ]
+    },
+    "inference": {
+      "read": [
+        "maintai-models"
+      ],
+      "write": []
+    },
+    "training": {
+      "read": [
+        "maintai-approved",
+        "maintai-models"
+      ],
+      "write": [
+        "maintai-models"
+      ]
+    },
+    "rag": {
+      "read": [
+        "maintai-manuals"
+      ],
+      "write": []
+    },
+    "drift": {
+      "read": [
+        "maintai-processed",
+        "maintai-models",
+        "maintai-drift"
+      ],
+      "write": [
+        "maintai-drift"
+      ]
+    },
+    "mlflow": {
+      "read": [
+        "maintai-mlflow"
+      ],
+      "write": [
+        "maintai-mlflow"
+      ]
+    },
+    "processing-reader": {
+      "read": [
+        "maintai-processed"
+      ],
+      "write": []
+    }
+  }
+}

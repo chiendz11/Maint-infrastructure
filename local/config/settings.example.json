@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "gitops_repository": "https://github.com/chiendz11/MaintAI-gitops.git",
+  "gitops_revision": "main",
+  "gitops_checkout": "../MaintAI-gitops",
+  "app_checkout": "../MaintAI",
+  "machine_count": 5
+}

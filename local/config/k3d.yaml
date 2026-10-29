@@ -1,0 +1,59 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: maintai-local
+servers: 1
+agents: 0
+image: __IMAGE_K3S__
+kubeAPI:
+  host: 127.0.0.1
+  hostIP: 127.0.0.1
+  hostPort: '6550'
+volumes:
+- volume: __LOCAL_STATE__:/var/lib/rancher/k3s/storage
+  nodeFilters:
+  - server:0
+- volume: __LOCAL_DATA__:/mnt/maintai-local:ro
+  nodeFilters:
+  - server:0
+options:
+  k3d:
+    wait: true
+    timeout: 180s
+    disableLoadbalancer: true
+  k3s:
+    extraArgs:
+    - arg: --disable=traefik
+      nodeFilters:
+      - server:0
+    - arg: --disable=servicelb
+      nodeFilters:
+      - server:0
+  kubeconfig:
+    updateDefaultKubeconfig: false
+    switchCurrentContext: false
+ports:
+- port: 127.0.0.1:18080:30080
+  nodeFilters:
+  - server:0
+- port: 127.0.0.1:18081:30081
+  nodeFilters:
+  - server:0
+- port: 127.0.0.1:18490:30490
+  nodeFilters:
+  - server:0
+- port: 127.0.0.1:13000:30000
+  nodeFilters:
+  - server:0
+- port: 127.0.0.1:15000:30500
+  nodeFilters:
+  - server:0
+- port: 127.0.0.1:19090:30900
+  nodeFilters:
+  - server:0
+- port: 127.0.0.1:19000:30990
+  nodeFilters:
+  - server:0
+- port: 127.0.0.1:19001:30991
+  nodeFilters:
+  - server:0
