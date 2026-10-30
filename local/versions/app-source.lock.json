@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "5b4664bb24e9f107c00a83e1faffb72fc5c1f4e3",
+  "source_git_sha": "2df0a914287a86f3500731ba05a2ba866bbee160",
   "captured_on": "2026-10-30",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
     "contracts/kafka/topology.json": "04303b7d0eedd52bb1de36fc34b94e154c36055437b1ec6f0d9d88042391384b",
-    "backend/pyproject.toml": "618c563efeb387c07e87c0d2583e6b30acd0e3586f5fc46892e87bc29f9c6fec",
+    "backend/pyproject.toml": "6eaa6baf1b4a11c326e2f763850c711767f3d0909f3b7ae1823f2002ebccfde0",
     "backend/business-api/src/api/config.py": "5bab7ef583f7154373d87b85a651404c39f021e476fce17cb4c3142d5d11ad5e",
     "backend/business-consumer/src/config.py": "021ada1f68e8738cb84dcc2a13f0ebb0837b1602c8ef99fcac9589a9b0c450f4",
-    "processing/pyproject.toml": "9de9a54f247862646bbb97cd2b627d7788d870e68cb10ed7f3a9b07f1d34e57a",
+    "processing/pyproject.toml": "a046b38096400749a73235af3797ece3158b24dc1970d15b4c66688ef743a55d",
     "processing/worker/src/consumer/config.py": "1d544f1cca1fd6a2c1a28bbe94a8acac5e48825c83b160b288b2920e017d73d8",
     "processing/outbox-relay/src/relay/config.py": "770c19c711343a66dd4d35fc9b15572dc451b07c4d5dcb152ac22df9f8de6438",
     "processing/read-api/src/api/config.py": "40f8559d7697b753f243a41a390c046c6b30ed9ba7266c47d38c4d85164430ba",
@@ -53,7 +53,7 @@
     "processing/config/risk-policies/manifest.json": "6bac14fb92157b2b10f4debf6b71bfdbd2bd1543e1e6e731f5fdeb0a99e3a364",
     "processing/config/risk-policies/risk-policy.schema.json": "fca723490dc669f864eb37c9247879bcef953440eea7cf14ae2733502579f0c3",
     "processing/config/risk-policies/README.md": "14ee66ad9e0439b59d08ad0c56127e071b898456c6e7d68345d24e1486c874af",
-    "processing/worker/runtime.json": "90c791e124d44825f065ecc40e32644538dbdc6774ae392ee77934a39b87fc50",
+    "processing/worker/runtime.json": "628fcb6b7126890caa1014e15b7e8513f61d5c9d72f2c25c3a5e1fb88fab46c1",
     "processing/shared/inference_client/local_identity.py": "c57365a120a4013222edf420cf5eac00bc369d21f18d0240dfa24e5aeb4e03b5",
     "processing/shared/inference_client/model_identity.py": "134bb763e18e0eb554916afb5e5675e5c4d13e26ff4e039cb82fc285f6c7b017",
     "rag-service/embedding-lock.json": "234a370c6c470c3041ce1cdbac73871f9859b51fb34e8630f7abdc3bd7b5b32e",
@@ -66,7 +66,10 @@
     "rag-service/llm_generator/generator.py": "530fc03d9efedbdc7a9f63e7870821e53667d30659addbecddc3f1f924107afb",
     "rag-service/requirements-torch-cpu.lock": "9ffa4f5fa5c77bac18b90aa8cff4bf0bbb2d05776f5974c0bea0c2ddf2026925",
     "ml-service/training/data_preparation/splits/ai4i-stratified-v1-seed42.json": "94889871b1c814f5d36d67357c44b6fabc68a18040e7674658a64f7761483752",
-    "rag-service/Dockerfile.dockerignore": "148a0c9240ed152b9f03cfcead8c0576c5681ea6807b5289abb30c5d952bb57e"
+    "rag-service/Dockerfile.dockerignore": "148a0c9240ed152b9f03cfcead8c0576c5681ea6807b5289abb30c5d952bb57e",
+    "messaging/pyproject.toml": "be49218b2db80582d853ad439f5e590bb9a1daa8ebb4ff369c40bccbfb8931ad",
+    "messaging/src/maintai_messaging/consumer.py": "1d053e2c4e2b33d5ba378f1b07f5475055cf006a835deb271c4e2c4a0adcab68",
+    "storage-consumer/pyproject.toml": "2bba42a87ba343d6c75b59f89dbc919203ea7ae0def7f51d46ecec5669f2368b"
   },
   "semantics": "Reviewed committed interfaces, build inputs and app-owned risk-policy source at the exact Git revision. Local CI/build/prepare verify HEAD and hashes. Source is not deployment evidence; datasets, model binaries and full model identity remain separate inputs."
 }
