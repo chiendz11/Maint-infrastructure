@@ -10,7 +10,7 @@ raw archive vào MinIO và một lời gọi RAG/Groq trực tiếp.
 | Thành phần | Source đã dùng |
 | --- | --- |
 | App nền | `chiendz11/MaintAI`, commit `5b4664bb24e9f107c00a83e1faffb72fc5c1f4e3` |
-| Bản sửa Kafka | Nhánh `fix/kafka-serial-prefetch`, commit `2df0a914287a86f3500731ba05a2ba866bbee160`, SDK0.3.1 |
+| Bản sửa Kafka | Nhánh `fix/kafka-serial-prefetch`, commit `2df0a914287a86f3500731ba05a2ba866bbee160`, SDK 0.3.1 |
 | GitOps local | Nhánh `demo/local-k3d`; ba Application theo `environments/local/{platform,observability,apps}` |
 | Infrastructure local | Nhánh `demo/local-k3d`; cluster, private kubeconfig, Secrets, Argo bootstrap và owner Jobs |
 
@@ -20,14 +20,14 @@ image đã build từ commit sửa lỗi; các component còn lại giữ receip
 nền. Không gán cùng một source SHA giả cho mọi image. Source locks ở hai repo
 platform đã đồng bộ với source được review; từng image vẫn có receipt riêng.
 
-Local dùng k3d5.9.0, Kubernetes1.35.5, Argo CD3.2.0, Kafka KRaft một broker,
-PostgreSQL17/pgvector và MinIO. Không provision AWS trong lần chạy này.
+Local dùng k3d 5.9.0, Kubernetes 1.35.5, Argo CD 3.2.0, Kafka KRaft một broker,
+PostgreSQL 17/pgvector và MinIO. Không provision AWS trong lần chạy này.
 
 ## 2. Các bước đã thực hiện
 
 ### Bước 1 — Chuẩn bị dữ liệu, model và credential
 
-- Đặt AI4I CSV10.000 dòng trong private local data. Simulator chỉ đưa sáu feature
+- Đặt AI4I CSV 10.000 dòng trong private local data. Simulator chỉ đưa sáu feature
   allowlist vào pipeline; các machine ID là danh tính máy giả lập.
 - Kiểm bundle `logreg-baseline-v0`: pipeline, metadata, evaluation và drift reference.
 - Tạo full model identity từ checksum thật và OCI image identity. Marker
@@ -78,8 +78,8 @@ superuser làm runtime credential hoặc cho Business truy vấn trực tiếp P
 
 Chạy owner Job `prepare-rag` trên cluster đích, dùng cache PVC và knowledge owner:
 
-- Load MiniLM multilingual revision đã khóa, vector384 chiều.
-- Kiểm checksum PDF46 trang, migrate knowledge schema và ingest106 chunks.
+- Load MiniLM multilingual revision đã khóa, vector 384 chiều.
+- Kiểm checksum PDF 46 trang, migrate knowledge schema và ingest 106 chunks.
 - Kiểm vector retrieval và metadata cần cho citations.
 - Ghi receipt gắn với image/source thật của RAG trên cluster đích.
 
@@ -126,18 +126,18 @@ sensor.readings -> Storage Consumer -> MinIO raw object + manifest
 
 | Kiểm tra | Kết quả quan sát được |
 | --- | --- |
-| Normal | Có telemetry và prediction thật, Processing COMPLETED, model `logreg-baseline-v0`; một snapshot có cùng source event, telemetry age545ms và prediction age448ms |
-| Pause riêng M-001 | Sequence giữ796 qua hai lần đọc; M-002 vẫn tăng799 ->803 |
-| Resume M-001 | Tiếp tục sequence797, không reset stream |
-| Critical | Tạo alert mới cho M-002, severity CRITICAL, risk_score0.9635227210665391 qua ML/risk thật |
-| Recovery | Chấp nhận điều khiển cả5 máy; alert đang mở không tự bị đóng |
+| Normal | Có telemetry và prediction thật, Processing COMPLETED, model `logreg-baseline-v0`; một snapshot có cùng source event, telemetry age 545ms và prediction age 448ms |
+| Pause riêng M-001 | Sequence giữ 796 qua hai lần đọc; M-002 vẫn tăng 799 -> 803 |
+| Resume M-001 | Tiếp tục sequence 797, không reset stream |
+| Critical | Tạo alert mới cho M-002, severity CRITICAL, risk_score 0.9635227210665391 qua ML/risk thật |
+| Recovery | Chấp nhận điều khiển cả 5 máy; alert đang mở không tự bị đóng |
 | Lifecycle | UI thực hiện ACK -> START -> RESOLVE; audit có CREATED, ACKNOWLEDGED, IN_PROGRESS, RESOLVED |
 | Feedback | Ghi nhận feedback từ UI, verdict INCONCLUSIVE và recommendation NOT_AVAILABLE vì Business Copilot chưa tích hợp |
-| Degradation | M-005 chuyển scenario thành công, sequence1298 ->1303 và có prediction mới; chưa đo đầy đủ ramp300 readings |
-| Raw archive | Một snapshot có3970 raw objects và3970 manifests; bucket versioning Enabled; đã đọc đúng object VersionId và kiểm SHA-256/frame count |
-| RAG trực tiếp | HTTP200, dịch vụ trả GROUNDED, 10 bước checklist, 3 citations; provider Groq và3 chunks retrieval thật |
+| Degradation | M-005 chuyển scenario thành công, sequence 1298 -> 1303 và có prediction mới; chưa đo đầy đủ ramp 300 readings |
+| Raw archive | Một snapshot có 3970 raw objects và 3970 manifests; bucket versioning Enabled; đã đọc đúng object VersionId và kiểm SHA-256/frame count |
+| RAG trực tiếp | HTTP 200, dịch vụ trả GROUNDED, 10 bước checklist, 3 citations; provider Groq và3 chunks retrieval thật |
 
-Các số đo age ở trên là một snapshot, không phải p95 latency hoặc benchmark100 máy.
+Các số đo age ở trên là một snapshot, không phải p95 latency hoặc benchmark 100 máy.
 Normal nghĩa là không thêm biến đổi scenario vào AI4I; bản thân AI4I có các dòng
 rủi ro cao, nên Normal không bảo đảm toàn bộ readings đều tạo prediction NORMAL.
 Tên Critical cũng không ép đầu ra: alert chỉ xuất hiện khi model/policy thật thỏa điều kiện.
@@ -151,14 +151,14 @@ UNAVAILABLE ở panel này. Không gọi đây là tích hợp Copilot hoàn ch�
 | Vị trí | Lý do và cách sửa |
 | --- | --- |
 | k3d config | Bật server load balancer cần cho API proxy port mapping |
-| RAG cache PVC | Chuyển sync wave về0 để WaitForFirstConsumer không chặn toàn bộ platform sync |
+| RAG cache PVC | Chuyển sync wave về 0 để WaitForFirstConsumer không chặn toàn bộ platform sync |
 | Keycloak runtime | Giới hạn JVM heap và tăng memory limit để tránh OOM trong startup augmentation |
 | TLS/HTTP bridge | Proxy tự đặt forwarding headers theo kết nối thật; không tin header forwarding do caller gửi |
 | OAuth helper | Không gửi scope rỗng; chỉ gửi scope khi được cấu hình |
 | Keycloak realm | Bổ sung native basic scope và rollout service clients để access token có sub |
 | Groq runtime | Chọn model thực sự được tài khoản/provider cung cấp thay vì ID unavailable |
-| SDK ConsumerRunner | SDK0.3.1 dùng bounded prefetch64/32, một handler; bỏ pause tất cả partition sau từng record gây backlog và phục vụ máy không đều |
-| Local Relay config | Giảm OUTBOX_POLL_INTERVAL_MS250 ->10; nhịp cũ làm DB outbox tăng khi5 máy chạy liên tục |
+| SDK ConsumerRunner | SDK 0.3.1 dùng bounded prefetch 64/32, một handler; bỏ pause tất cả partition sau từng record gây backlog và phục vụ máy không đều |
+| Local Relay config | Giảm OUTBOX_POLL_INTERVAL_MS 250 -> 10; nhịp cũ làm DB outbox tăng khi 5 máy chạy liên tục |
 
 Không reset offsets, xóa inbox/outbox hoặc bịa prediction/alert để tạo kết quả demo.
 Chỉ các ConfigMap hash cũ đã xác minh không còn workload đang chạy tham chiếu mới
@@ -166,24 +166,24 @@ Chỉ các ConfigMap hash cũ đã xác minh không còn workload đang chạy t
 
 ## 5. Các kiểm tra đã chạy
 
-- SDK/Processing unit:86 passed.
-- Kafka/PostgreSQL integration thật trong Compose riêng:25 passed, gồm regression
+- SDK/Processing unit: 86 passed.
+- Kafka/PostgreSQL integration thật trong Compose riêng: 25 passed, gồm regression
   backlog nhiều partition. Các container/volume chỉ dành cho lần test này đã dọn.
-- Storage regression:78 passed,2 optional integrations skipped ở lệnh này.
-- Business subset:4 passed,17 DB tests skipped ở lệnh subset; không gán chúng là DB integration pass.
-- GitOps32 unit tests và Infrastructure22 unit tests passed.
+- Storage regression: 78 passed, 2 optional integrations skipped ở lệnh này.
+- Business subset: 4 passed, 17 DB tests skipped ở lệnh subset; không gán chúng là DB integration pass.
+- GitOps 32 unit tests và Infrastructure 22 unit tests passed.
 - Kiểm source locks, contract/production fingerprints, document hashes và local refs passed.
 - [Full app push CI tại đúng commit](https://github.com/chiendz11/MaintAI/actions/runs/41001003039) passed.
 - Browser/OIDC và core pipeline thực trên k3d passed, có screenshots/private receipts.
 
-Sau tuning, kiểm tra thêm120 giây với5 máy, lấy24 snapshots/máy cách nhau5 giây:
-120/120 snapshots có telemetry/prediction age dưới5 giây. Giá trị lớn nhất quan
-sát được là telemetry1.030425 giây và prediction1.084452 giây. DB outbox đã về0.
+Sau tuning, kiểm tra thêm 120 giây với 5 máy, lấy 24 snapshots/máy cách nhau 5 giây:
+120/120 snapshots có telemetry/prediction age dưới 5 giây. Giá trị lớn nhất quan
+sát được là telemetry 1.030425 giây và prediction 1.084452 giây. DB outbox đã về 0.
 Đây là tuổi dữ liệu tại thời điểm đọc API, không phải phép đo p95 event-to-browser.
 
 Chi tiết chạy liên tục được ghi riêng trong
-`local/.local/continuous-demo-receipt.json`. Đây là kiểm tra5 máy với snapshot
-định kỳ, không phải kiểm chứng tải100 máy hoặc HA của AWS.
+`local/.local/continuous-demo-receipt.json`. Đây là kiểm tra 5 máy với snapshot
+định kỳ, không phải kiểm chứng tải 100 máy hoặc HA của AWS.
 
 ## 6. Mở và tiếp tục demo
 
@@ -216,15 +216,15 @@ của Argo; Keycloak dùng CA local đã chuẩn bị. Không truyền Groq key 
 .venv/bin/python -m localdev forward argocd
 ```
 
-Sau các kiểm tra, cả5 máy được đưa về scenario normal và giữ RUNNING để tiếp tục
+Sau các kiểm tra, cả 5 máy được đưa về scenario normal và giữ RUNNING để tiếp tục
 demo. Có thể Pause từng máy trên Simulator UI khi không muốn sinh thêm dữ liệu.
 Các số liệu, screenshots, JSON evidence và log chi tiết nằm trong `local/.local/`;
 không copy credential hoặc toàn bộ private runtime data vào Git.
 
 ## 7. Phạm vi chưa được chứng minh
 
-Chưa chạy benchmark100 máy, multi-node HA, phục hồi mất mạng/crash toàn pipeline,
-đầy đủ ramp300 readings của Degradation/Recovery hoặc vòng đời training/promotion.
+Chưa chạy benchmark 100 máy, multi-node HA, phục hồi mất mạng/crash toàn pipeline,
+đầy đủ ramp 300 readings của Degradation/Recovery hoặc vòng đời training/promotion.
 MLflow, training và Drift không được bật trong reviewed demo profile này.
 M6 History/Export và Business Copilot M7 không được coi là hoàn thành từ các
 kết quả trên. Model/policy đang dùng là baseline/demo, chưa là approved production release.
