@@ -20,7 +20,8 @@ options:
   k3d:
     wait: true
     timeout: 180s
-    disableLoadbalancer: true
+    # kubeAPI.hostPort is a proxy mapping and requires the k3d serverlb.
+    disableLoadbalancer: false
   k3s:
     extraArgs:
     - arg: --disable=traefik

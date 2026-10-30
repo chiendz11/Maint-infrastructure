@@ -11,6 +11,12 @@ from localdev import common, credentials
 
 
 class LocalOperatorSafety(unittest.TestCase):
+    def test_fixed_kube_api_port_keeps_the_k3d_proxy_enabled(self):
+        import yaml
+        config = yaml.safe_load((common.ROOT / "local/config/k3d.yaml").read_text())
+        self.assertEqual(config["kubeAPI"]["hostIP"], "127.0.0.1")
+        self.assertFalse(config["options"]["k3d"]["disableLoadbalancer"])
+
     def test_initialization_preserves_existing_credentials(self):
         with tempfile.TemporaryDirectory() as folder:
             local = Path(folder) / ".local"
