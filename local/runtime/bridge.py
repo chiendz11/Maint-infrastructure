@@ -20,6 +20,15 @@ ALLOWED = {"postgres", "kafka", "keycloak", "business-api", "processing-read-api
            "ingestion-api", "ml-service", "frontend", "sensor", "simulator-ui"}
 
 
+def forwarded_headers(incoming, *, tls, client_host):
+    # The edge owns proxy metadata; never trust caller-supplied forwarding headers.
+    blocked = HOP | {"forwarded", "x-forwarded-proto", "x-forwarded-host", "x-forwarded-port", "x-forwarded-for"}
+    result = {key: value for key, value in incoming.items() if key.lower() not in blocked}
+    result["X-Forwarded-Proto"] = "https" if tls else "http"
+    result["X-Forwarded-For"] = client_host
+    return result
+
+
 def target(spec):
     host, port = spec["target_host"], spec["target_port"]
     short = host.removesuffix(".maintai-local.svc.cluster.local")
@@ -120,7 +129,7 @@ def http_server(spec, tokens):
                 body = self.rfile.read(size) if size else None
                 if body is not None and len(body) != size:
                     raise ValueError("Incomplete body")
-                headers = {k: v for k, v in self.headers.items() if k.lower() not in HOP}
+                headers = forwarded_headers(self.headers, tls=spec.get("tls", False), client_host=self.client_address[0])
                 if route.get("oauth"):
                     headers = {k: v for k, v in headers.items() if k.lower() != "authorization"}
                     headers["Authorization"] = "Bearer " + tokens.get(route["oauth"])
