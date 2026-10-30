@@ -3,9 +3,9 @@
   "groq_secret": "rag-groq",
   "cache_claim": "local-rag-embedding-cache",
   "environment": {
-    "GROQ_MODEL": "llama-3.3-70b-versatile",
+    "GROQ_MODEL": "openai/gpt-oss-20b",
     "GROQ_TIMEOUT_SECONDS": "60",
-    "GROQ_MAX_COMPLETION_TOKENS": "2048",
+    "GROQ_MAX_COMPLETION_TOKENS": "4096",
     "EMBEDDING_MODEL": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     "EMBEDDING_REVISION": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
     "HF_HOME": "/opt/maintai/model-cache",
