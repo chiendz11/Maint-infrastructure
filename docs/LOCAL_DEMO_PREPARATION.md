@@ -80,3 +80,9 @@ bài kiểm chứng này. Private report/log/cache nằm trong infrastructure .l
 k3d**. Trên cluster đích vẫn phải chạy prepare-rag để Job dùng đúng cache PVC và
 ghi receipt theo image đã import. Không copy receipt verification thành receipt
 cluster hoặc bật các cờ owner-operation khi chưa thực hiện.
+
+Kiểm tra container phát hiện và đã sửa qua app PR21: Docker ignore phải giữ
+PDF demo đã khóa checksum; user/group image phải là10001 để khớp Kubernetes và
+PyTorch. CI bắt buộc import embedding và kiểm PDF manifest trong container
+non-root/read-only root. Lệnh prepare_demo thực đã chạy qua với UID10001, cache
+volume writable, root read-only, PostgreSQL owner và106 chunks không nhân đôi.

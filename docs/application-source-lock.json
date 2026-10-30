@@ -15,7 +15,7 @@
     "decision": "PROC-ORDER-01/1.0.0",
     "sdk_version": "0.3.0",
     "kafka_bundle_version": "2.0.0",
-    "source_git_sha": "20ea012eb6b69746d69eabb262d03b50376ffb08",
+    "source_git_sha": "5b4664bb24e9f107c00a83e1faffb72fc5c1f4e3",
     "sha256": {
       "MaintAI_System_Contracts_v1_4_DEPLOYMENT_PROVENANCE.md": "fd1a97b11e2b2f08b50670813bdb6fcf107073f33d561e2c85265b8a8a6bc600",
       "MaintAI_Implementation_Development_Guide_v1_4_DEPLOYMENT_PROVENANCE.md": "6d272892145247829a08f047f640ad397475f8fe1786bf36f78ed076b74eaaf4",

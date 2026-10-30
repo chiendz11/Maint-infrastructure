@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "20ea012eb6b69746d69eabb262d03b50376ffb08",
+  "source_git_sha": "5b4664bb24e9f107c00a83e1faffb72fc5c1f4e3",
   "captured_on": "2026-10-30",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
@@ -28,7 +28,7 @@
     "drift-worker/Dockerfile": "4e4ebe604d095ed1c01cf2004fe9094edf2c422ef60de5ca41b65eb0e092f0fe",
     "frontend/Dockerfile": "ef512a277eeee1326f8b73b00b79d94d4c8380570bdbfa07bf9ff6dd36809724",
     "storage-consumer/Dockerfile": "eca4cbd1eaae7f4122567bb703a1a755c54c557beba56e794bee72d0e6967c30",
-    "rag-service/Dockerfile": "9024b423096a2166e75fff55f6bafd7cceda2dc7ad3e975269fc20a39d46fe9f",
+    "rag-service/Dockerfile": "4a5054095a3af52b9be86213d8dd07c3af127bbaa87aa36d7d933640c76976a8",
     "ingestion-api/Dockerfile": "947e2d5514788f55e319cf61915817ddc69e1fc5a3baf9fc59993f7495bfb651",
     "backend/business-consumer/Dockerfile": "31c29c48f82fdf5f1a18efcc8350c020bf8a288d0329ae892739981bc8c0cc71",
     "backend/business-api/Dockerfile": "ad08a5520ab678561c790baa1734596f0b91a19be47001e3744aa8e82b4dbe37",
@@ -65,7 +65,8 @@
     "rag-service/llm_generator/config.py": "95c7d445224e015dffffc5401df5cb423b72e7443120111e48088d82681027e8",
     "rag-service/llm_generator/generator.py": "530fc03d9efedbdc7a9f63e7870821e53667d30659addbecddc3f1f924107afb",
     "rag-service/requirements-torch-cpu.lock": "9ffa4f5fa5c77bac18b90aa8cff4bf0bbb2d05776f5974c0bea0c2ddf2026925",
-    "ml-service/training/data_preparation/splits/ai4i-stratified-v1-seed42.json": "94889871b1c814f5d36d67357c44b6fabc68a18040e7674658a64f7761483752"
+    "ml-service/training/data_preparation/splits/ai4i-stratified-v1-seed42.json": "94889871b1c814f5d36d67357c44b6fabc68a18040e7674658a64f7761483752",
+    "rag-service/Dockerfile.dockerignore": "148a0c9240ed152b9f03cfcead8c0576c5681ea6807b5289abb30c5d952bb57e"
   },
   "semantics": "Reviewed committed interfaces, build inputs and app-owned risk-policy source at the exact Git revision. Local CI/build/prepare verify HEAD and hashes. Source is not deployment evidence; datasets, model binaries and full model identity remain separate inputs."
 }

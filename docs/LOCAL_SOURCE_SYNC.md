@@ -14,8 +14,8 @@ commit đã push. Có remote không đồng nghĩa cluster đã tạo hoặc wor
 
 ## 2. App revision được đối chiếu
 
-Commit app: `20ea012eb6b69746d69eabb262d03b50376ffb08`. Commit này gồm Storage catalog0.2.1,
-ML của PR15, RAG của PR16, digest pins của PR19 và Groq/demo preparation của PR20. ML/RAG dùng official Python
+Commit app: `5b4664bb24e9f107c00a83e1faffb72fc5c1f4e3`. Commit này gồm Storage catalog0.2.1,
+ML của PR15, RAG của PR16, digest pins của PR19 và Groq/demo preparation của PR20; PR21 sửa PDF packaging và UID10001. ML/RAG dùng official Python
 OCI indexes theo digest; giữ Python3.12 cho ML và Python3.11 cho RAG.
 
 Hai bản app-source lock phải giống từng byte:
