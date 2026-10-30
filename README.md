@@ -29,6 +29,11 @@ Exact provider pins/checksum locks are present; addon
 builds, AMI release, PostgreSQL/pgvector minor, domain and account-specific inputs
 must be supplied before any future plan. `enable_gitops_root=false` by default.
 
+Đã chạy demo local ngày30/10/2026 trên nhánh `demo/local-k3d`: core pipeline,
+Simulator/Business UI, Alert lifecycle, MinIO archive và RAG/Groq trực tiếp.
+Xem [báo cáo triển khai và cách mở demo](docs/LOCAL_DEMO_RUN_2026-10-30.md)
+để phân biệt kết quả đã chạy, source receipts và các phần M6/M7 còn thiếu.
+
 ## Application alignment — PROC-ORDER-01,2026-10-23
 
 The current app design is [v1.4 + PROC-ORDER-01](../MaintAI/docs/PROCESSING_CONCURRENCY_AND_ORDERING.md),
