@@ -30,10 +30,13 @@ class Tokens:
             } or parsed.port not in {None, 8080} or parsed.query or parsed.fragment:
                 raise ValueError("Unexpected local identity endpoint")
             secret = Path(spec["secret_file"]).read_text().strip()
-            data = urllib.parse.urlencode({
+            form = {
                 "grant_type": "client_credentials", "client_id": spec["client_id"],
-                "client_secret": secret, "scope": spec.get("scope", ""),
-            }).encode()
+                "client_secret": secret,
+            }
+            if spec.get("scope"):
+                form["scope"] = spec["scope"]
+            data = urllib.parse.urlencode(form).encode()
             opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
             with opener.open(urllib.request.Request(endpoint, data=data), timeout=5) as response:
                 raw = response.read(65537)
