@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "4ef10dea09ffa56ee725ce2a9509b292cabbafdd",
+  "source_git_sha": "a995109e8c903453b0a8834e82473ae3cf15a77c",
   "captured_on": "2026-10-31",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
