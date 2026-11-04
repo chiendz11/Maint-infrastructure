@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "a995109e8c903453b0a8834e82473ae3cf15a77c",
-  "captured_on": "2026-10-31",
+  "source_git_sha": "325085ead23910a6af85d69f3ec9826776da4157",
+  "captured_on": "2026-11-04",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
     "contracts/kafka/topology.json": "04303b7d0eedd52bb1de36fc34b94e154c36055437b1ec6f0d9d88042391384b",
@@ -52,8 +52,8 @@
     "processing/config/risk-policies/demo-risk-v1.json": "254926e93f9a9435bf938c1e4d4f605ada5415f9a024b53aaabf762e963cc588",
     "processing/config/risk-policies/manifest.json": "6bac14fb92157b2b10f4debf6b71bfdbd2bd1543e1e6e731f5fdeb0a99e3a364",
     "processing/config/risk-policies/risk-policy.schema.json": "fca723490dc669f864eb37c9247879bcef953440eea7cf14ae2733502579f0c3",
-    "processing/config/risk-policies/README.md": "14ee66ad9e0439b59d08ad0c56127e071b898456c6e7d68345d24e1486c874af",
-    "processing/worker/runtime.json": "628fcb6b7126890caa1014e15b7e8513f61d5c9d72f2c25c3a5e1fb88fab46c1",
+    "processing/config/risk-policies/README.md": "906ce2c4c43d151fddf0defe8c1c2e7e748ce53046e239405b23b1a95bb88a6a",
+    "processing/worker/runtime.json": "273e91acfce6567f52b27402e54bcf6163baaa260bdc3773043cb24038010aa8",
     "processing/shared/inference_client/local_identity.py": "c57365a120a4013222edf420cf5eac00bc369d21f18d0240dfa24e5aeb4e03b5",
     "processing/shared/inference_client/model_identity.py": "134bb763e18e0eb554916afb5e5675e5c4d13e26ff4e039cb82fc285f6c7b017",
     "rag-service/embedding-lock.json": "234a370c6c470c3041ce1cdbac73871f9859b51fb34e8630f7abdc3bd7b5b32e",
