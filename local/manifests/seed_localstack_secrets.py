@@ -40,9 +40,9 @@ def main():
     s3 = creds.get("minio", {})
 
     db_secrets = {
-        "BUSINESS_DATABASE_URL": f"postgresql://business_api:{pg.get('business_api_password', 'secret')}@postgres:5432/business_db",
-        "PROCESSING_DATABASE_URL": f"postgresql://processing_worker:{pg.get('processing_worker_password', 'secret')}@postgres:5432/processing_db",
-        "PROCESSING_READ_DATABASE_URL": f"postgresql://processing_reader:{pg.get('processing_reader_password', 'secret')}@postgres:5432/processing_db",
+        "BUSINESS_DATABASE_URL": f"postgresql://business_api:{pg.get('business_api_password', 'secret')}@127.0.0.1:25432/business_db",
+        "PROCESSING_DATABASE_URL": f"postgresql://processing_worker:{pg.get('processing_worker_password', 'secret')}@127.0.0.1:25432/processing_db",
+        "PROCESSING_READ_DATABASE_URL": f"postgresql://processing_reader:{pg.get('processing_reader_password', 'secret')}@127.0.0.1:25432/processing_db",
         "KNOWLEDGE_DATABASE_URL": f"postgresql://knowledge_owner:{pg.get('knowledge_owner_password', 'secret')}@postgres:5432/knowledge_db",
         "DRIFT_DATABASE_URL": f"postgresql://drift_owner:{pg.get('drift_owner_password', 'secret')}@postgres:5432/drift_db",
     }
@@ -72,3 +72,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
