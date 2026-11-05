@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "8898d28873896e748478ecc610764467dd4c4e23",
+  "source_git_sha": "3b4bb80736d457700acf61108c07683ba3755d1a",
   "captured_on": "2026-11-05",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
@@ -43,7 +43,7 @@
     "rag-service/main.py": "522ce710fde57ec5da6e9a019a65081122ada6941f3ee45ef8d50d8d0fa3ff9e",
     "rag-service/runtime_config.py": "d9d5c3b2a30f4a5f3b3b12202cb200bdbe06ad540705dad499214da3b5df975d",
     "rag-service/requirements-runtime.lock": "8cae58969c89eae9b5067416d92a91871fa2782c4e55455ba2d0bf42cbfc37bf",
-    "rag-service/api/routes.py": "726aa7c8c1f294e0c5cd2d576e2259346ff7dc5957e3f62749d21ed955b4530d",
+    "rag-service/api/routes.py": "a880d1f5efea98e36958ae7f11cf4710dcd22e2719582fe2e145a5c2dbbd3784",
     "rag-service/ingestion/cli.py": "03944412e0e0a45eb035dbc45289f7b739b93a16a43709b20a850c231334bda8",
     "rag-service/ingestion/prepare_embedding.py": "3066f2b658e6409d980398b0682c3b258ff48334cd55181c7b5bbde6891bf85f",
     "rag-service/migrations/cli.py": "04956ca006226c3dd3eb5781c3ea1fa07fe14417b7546811a6a988314be133ad",
@@ -62,8 +62,8 @@
     "rag-service/ingestion/prepare_demo.py": "0bf974676bfedf4fbf6d11bb2a5ee1213db5bfcadc77d479dc2109d85f70120e",
     "rag-service/ingestion/embedding.py": "2a639c3106d514f2d5cfcb4e0349c1daf942ad0d08f75ea68827b25371b91daa",
     "rag-service/ingestion/ingest.py": "fd8a29a38491b0ae3976818d0901418a96c064402f47693ad7edbc26ebc491e5",
-    "rag-service/llm_generator/config.py": "95c7d445224e015dffffc5401df5cb423b72e7443120111e48088d82681027e8",
-    "rag-service/llm_generator/generator.py": "530fc03d9efedbdc7a9f63e7870821e53667d30659addbecddc3f1f924107afb",
+    "rag-service/llm_generator/config.py": "f8b16acf217630fd89b85e799d5dbac7b33d35f661dd910d81f9a6728022c6e1",
+    "rag-service/llm_generator/generator.py": "8edd806d9650fbb8c059f5abf57ea88fe63659b920251f3314fcd75fd6e6128b",
     "rag-service/requirements-torch-cpu.lock": "9ffa4f5fa5c77bac18b90aa8cff4bf0bbb2d05776f5974c0bea0c2ddf2026925",
     "ml-service/training/data_preparation/splits/ai4i-stratified-v1-seed42.json": "94889871b1c814f5d36d67357c44b6fabc68a18040e7674658a64f7761483752",
     "rag-service/Dockerfile.dockerignore": "148a0c9240ed152b9f03cfcead8c0576c5681ea6807b5289abb30c5d952bb57e",
