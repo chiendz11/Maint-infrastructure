@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "a1addebda5926e88aab3b78bdf93fdac527073d4",
+  "source_git_sha": "3532e6063bdfe1f87c92bab90d3eeb046b39a52b",
   "captured_on": "2026-11-05",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
@@ -35,10 +35,10 @@
     "processing/read-api/Dockerfile": "62ddd7c1424f3b17e855ef7a6689df77d7184a605f819291093487f8e50b961b",
     "processing/outbox-relay/Dockerfile": "d8ce4d29938014c40d6d27879188273fe75080fa40806b5b041ae01467be5c4f",
     "processing/worker/Dockerfile": "2d7495446814a82d264bdce8e383303be1ce4cdf5887a166570561e1d692ab6e",
-    "ml-service/inference/Dockerfile": "f1044ce64e165c0c21519dfa6088e4fd9f1ffc3767f2367c34d99403a940b1bd",
-    "ml-service/training/Dockerfile": "255c6111d3d549a8970c8baf0333f3dfb8de471727d30bb6c85e49382bf64223",
+    "ml-service/inference/Dockerfile": "7bc43a744a9bbb0a2c56dba92554d42578d0c4f61343651c96a6caf367146697",
+    "ml-service/training/Dockerfile": "b7fdc260f5e3168f88e6b8c5f797d62c34265f884f8ecf14857232c2c75fbef3",
     "ml-service/mlflow/Dockerfile": "8a49f7406522aeebc2ab7f823760092a3a6c8cdaa6b2a59d2da085ace235241c",
-    "ml-service/inference/api/local_baseline.py": "78e3b751a3b1c97e5b7056a25ab954370ee48790d19f4727cb896084d98fe3be",
+    "ml-service/inference/api/local_baseline.py": "20331b217b7b8d49c9f69f752e4f510477a45a089845d0f73312fdf974475ee3",
     "ml-service/inference/requirements-serving.txt": "219b01107889c7f813f685e72b00de59e95961907555004d79573a0684db3d21",
     "rag-service/main.py": "522ce710fde57ec5da6e9a019a65081122ada6941f3ee45ef8d50d8d0fa3ff9e",
     "rag-service/runtime_config.py": "d9d5c3b2a30f4a5f3b3b12202cb200bdbe06ad540705dad499214da3b5df975d",
