@@ -90,7 +90,10 @@ def prepare():
     previous = read(target) if target.exists() else {}
     document = {"schema_version": "1.0.0", "enabled": previous.get("enabled", False),
                 "issuer": HISTORY_ISSUER, "service_subject": subject, "signing_key_id": keys["kid"],
-                "jwks": keys["jwks"], "adapter_image": previous.get("adapter_image")}
+                "jwks": keys["jwks"], "adapter_image": previous.get("adapter_image"),
+                "raw_bucket": previous.get("raw_bucket", "maintai-raw")}
+    for field in ("archive_group_prefix", "archive_lineage"):
+        if field in previous: document[field] = previous[field]
     target.write_text(json.dumps(document, indent=2) + "\n")
     print("Private RSA/cursor keys preserved; public selector contains verified service subject.")
 
