@@ -266,11 +266,16 @@ credentials vào repo; bằng chứng chi tiết nằm trong `local/.local/` git
 
 ### Tắt hoặc rollback M6
 
-Lệnh renderer riêng dùng để bật/tái sinh M6 đã bật. Nếu cần tắt, revert bộ commit
-cấu hình đã review hoặc chuyển Argo về revision trước khi bật, rồi kiểm tra env
-thực trong hai Deployment. Chỉ đổi `enabled=false` trong selector và gọi scoped
-renderer không tự gỡ các flags/mounts đã có trong manifest cũ. Giữ metadata, khóa
-và bucket trong lần rollback; tắt API không phải quyết định xóa lịch sử.
+Lệnh renderer riêng dùng để bật/tái sinh M6 đã bật. Nếu cần tắt API, tạo một
+thay đổi GitOps riêng đặt `BUSINESS_HISTORY_ENABLED=false` và
+`PROCESSING_HISTORY_ENABLED=false` trong hai API rồi kiểm tra env thực sau rollout.
+Chỉ đổi `enabled=false` trong selector và gọi scoped renderer không tự gỡ các
+flags/mounts đã có trong manifest cũ.
+
+Giữ archive bucket/group prefix hiện hành, bản sửa EOF, metadata và khóa.
+Không chuyển toàn bộ Argo về revision trước khi đổi archive namespace, vì điều đó
+có thể đưa Storage trở lại bucket có offset conflict. Tắt API không phải quyết
+định xóa lịch sử hoặc reset Kafka offsets.
 
 
 ## 9. Lỗi audit EOF phát hiện khi kiểm tra luồng live
