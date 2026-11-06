@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from localdev.history import cursor, new_keys
+from localdev.cli import local_autoscaling_options
 
 path = Path(__file__).resolve().parents[1] / "runtime/bridge.py"
 spec = importlib.util.spec_from_file_location("history_bridge", path)
@@ -17,6 +18,15 @@ spec.loader.exec_module(bridge)
 
 
 class HistoryKeys(unittest.TestCase):
+    def test_history_rollout_preserves_hpa_replica_ownership(self):
+        value = local_autoscaling_options()
+        rules = value["ignoreDifferences"]
+        self.assertIn("processing-worker", {row["name"] for row in rules})
+        self.assertNotIn("storage-consumer", {row["name"] for row in rules})
+        self.assertTrue(all(row["jsonPointers"] == ["/spec/replicas"] for row in rules))
+        self.assertIn("RespectIgnoreDifferences=true", value["syncPolicy"]["syncOptions"])
+        self.assertFalse(value["syncPolicy"]["automated"]["prune"])
+
     def test_separate_cursor_keys_and_public_only_jwks(self):
         value = new_keys()
         self.assertNotEqual(value["business_cursor"], value["processing_cursor"])

@@ -222,3 +222,10 @@ Sau build ML/Worker: `python -m localdev model-identity`. Sau platform sync và
 import RAG: `python -m localdev prepare-rag`. Groq key mới lưu private mode0600
 rồi cấp bằng `python -m localdev groq-secret`. Chi tiết tại
 [demo preparation](../docs/LOCAL_DEMO_PREPARATION.md). Không tự bật app workloads.
+
+## Bật History M6 trên cụm local đã có
+
+Xem [hướng dẫn M6](../docs/LOCAL_M6_HISTORY.md) để tạo delegation/cursor keys,
+khôi phục Secrets Manager/ESO, cấp quyền metadata, bật hai API và kiểm raw catalog.
+History không cần thêm service thường trực hoặc sửa source ứng dụng. Giữ dữ liệu
+private qua restart và không reset Kafka offsets để chữa lỗi archive.

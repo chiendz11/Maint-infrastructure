@@ -60,7 +60,8 @@ nếu thiếu, cấp CONNECT, gọi helper `grant_metadata`, và cấp CRUD bả
 Business cho Business API. Nó không cấp metadata role quyền đọc/ghi nguồn hoặc
 quyền ghi outcome/outbox, không xóa reading/prediction.
 
-Policy MinIO chỉ cho đọc raw-sensor/raw-catalog trong `maintai-raw`, và ghi/đọc
+Policy MinIO chỉ cho đọc raw-sensor/raw-catalog trong bucket đã chọn tại
+`MaintAI-gitops/config/local/history-runtime.json`, và ghi/đọc
 prefix `history-exports/` trong `maintai-processed`; không cấp DeleteObject.
 
 ## 3. Build adapter và bật hai API
@@ -81,7 +82,8 @@ Commit source infrastructure trước khi build để receipt ghi source sạch:
 ```
 
 Review rồi commit/push `config/local/history-runtime.json` và các manifests local.
-Lệnh chỉ cập nhật M6 của hai API, giữ các resource Phase2 khác. Generator chuẩn
+Lệnh cập nhật hai API và cấu hình catalog của Storage Consumer, giữ các resource
+Phase2 khác. Generator chuẩn
 cũng gọi cùng hàm wiring, tránh mất M6 khi tái sinh manifests.
 
 Business API có thêm các biến BUSINESS_HISTORY_* và mount Secret riêng.
@@ -112,3 +114,131 @@ Giữ `history.json` qua restart và chia sẻ đúng Secret giữa replicas cù
 Khóa ký khác cursor keys; hai API cũng không dùng chung cursor secret. Khi thay
 key/kid phải giữ public key cũ đủ thời gian token/cursor còn hiệu lực, cập nhật
 selector và rollout có kiểm soát. Đổi Secret không tự làm process nạp lại khóa.
+
+## 5. Khôi phục sau khi laptop/LocalStack khởi động lại
+
+LocalStack hiện là môi trường giả lập Secrets Manager cho local. Các mục trong
+Secrets Manager có thể không còn sau khi Pod LocalStack được tạo lại. Khi đó
+Secret Kubernetes cũ vẫn tồn tại, nhưng ESO báo `SecretSyncedError` và Argo bị
+chặn tại sync wave của ExternalSecret. Không tạo password mới để khắc phục lỗi này.
+
+Chạy tại root infrastructure, dùng đúng các file private đã giữ từ lần dựng đầu:
+
+```bash
+.venv/bin/python -m localdev.secret_store
+.venv/bin/python -m localdev.history seed
+```
+
+Lệnh đầu khôi phục các mục DB, Storage và Groq từ `credentials.json` cùng file
+`secrets/groq-api-key`. Lệnh sau khôi phục các mục M6 từ `secrets/history.json`.
+Payload đi qua stdin tới LocalStack của cluster được sở hữu; không đi vào command
+arguments, Git hoặc output. Thiếu credential thì dừng, không thay bằng password
+mặc định hoặc key giả. Script cũ `local/manifests/seed_localstack_secrets.py`
+chuyển tiếp tới cùng implementation này.
+
+Yêu cầu ESO đọc lại ngay thay vì chờ chu kỳ một giờ:
+
+```bash
+.venv/bin/python - <<'PY'
+import json, time
+from localdev.common import kube
+for item in json.loads(kube('get', 'externalsecrets', '-o', 'json', capture=True))['items']:
+    kube('annotate', 'externalsecret', item['metadata']['name'],
+         'force-sync=' + str(time.time_ns()), '--overwrite', capture=True)
+print(kube('get', 'externalsecrets', capture=True))
+PY
+```
+
+Chờ tất cả ExternalSecret có `READY=True`, sau đó cho Argo retry/sync. Không chỉnh
+trực tiếp các khóa runtime mà ESO đang quản lý vì ESO sẽ ghi lại từ store.
+
+## 6. Xử lý archive khi Kafka dùng lại offset
+
+Trong lần bật M6 ngày 06/11/2026, Storage Consumer cũ đã bị CrashLoop trước khi
+bật History. Kiểm tra Kafka và object version thực tế cho thấy cùng
+`topic/partition/offset` chứa hai event khác nhau giữa dữ liệu Kafka hiện tại và
+bucket cũ. Archive từ chối ghi đè là hành vi đúng; bật History không sửa được xung
+đột identity này.
+
+Cách phục hồi đã chọn:
+
+| Thành phần | Quyết định |
+| --- | --- |
+| Bucket cũ `maintai-raw` | Giữ nguyên toàn bộ objects, versions và manifests |
+| Bucket raw hiện tại | `maintai-raw-c8c61d245736`, bật versioning |
+| Căn cứ chọn tên | Hash của Kafka cluster ID và topic IDs thật, ghi ở `archive_lineage` |
+| Group prefix mới | `local-m6-c8c61d245736-`, chỉ áp dụng Storage Consumer |
+| Điểm bắt đầu | Earliest còn trong broker cho group mới; không reset group cũ |
+| Processing/Business groups | Giữ nguyên; không chạy lại hiệu ứng prediction/alert |
+| Read API | Đọc bucket mới; metadata index có source key riêng theo bucket/prefix |
+| Xóa dữ liệu | Không xóa bucket, không truncate DB, không bỏ qua offset conflict |
+
+Đây là chuyển namespace archive có chủ đích cho phiên Kafka hiện tại. Không tự
+động đổi bucket mỗi lần restart, không đổi cluster/topic IDs bằng tên tùy ý, và
+không dùng thao tác này để che mất dữ liệu broker đã hết retention. Lịch sử raw
+trong bucket cũ vẫn được giữ nhưng **không tự gộp** vào raw history của bucket mới.
+Processing history trong PostgreSQL vẫn được truy vấn như trước.
+
+`archive_replicas` trong selector cho phép từ1 đến3 replica local; lần phục hồi
+này dùng3 để xử lý backlog. Tất cả cùng nhóm theo vai trò, nên Kafka phân chia
+partition giữa các replica. Catalog dùng CAS để publisher cũ không làm lùi frontier.
+Không tăng partition hoặc đổi key máy. Có thể đưa về1 sau khi backlog đã bắt kịp;
+review/push selector rồi chạy lại generator thay vì scale tay ngoài GitOps.
+
+Storage Consumer được bật `STORAGE_CATALOG_ENABLED=true`. Hai consumer group
+vẫn lưu accepted/rejected độc lập, chỉ commit offset sau khi object và manifest
+đã lưu bền vững. Catalog mô tả receipt, phiên bản object, checksum và coverage của
+partition. Chỉ bật hai History flags mà chưa có catalog thì chưa đủ xem raw.
+
+Để kiểm tra tiến độ mà không in credentials:
+
+```bash
+.venv/bin/python - <<'PY'
+import json
+from collections import Counter
+from localdev.common import kube
+raw = kube('exec', 'deployment/storage-consumer', '-c', 'storage-consumer',
+           '--', 'maintai-storage', 'catalog-inspect', capture=True)
+catalog = json.loads(raw)
+print('Generation:', catalog['generation_id'])
+print('Coverage:', dict(Counter(p['status'] for p in catalog['partitions'])))
+for p in catalog['partitions']:
+    if p['topic'] == 'sensor.readings' and p['captured_log_end_offset']:
+        print(p['partition'], p['indexed_next_offset'],
+              p['captured_log_end_offset'], p['status'])
+PY
+```
+
+Read API chỉ cho raw history hoạt động khi đủ12 partition accepted có coverage
+`COMPLETE`, không có gap và generation còn mới trong120 giây. Trong lúc backfill,
+503 raw history là trạng thái chưa sẵn sàng; không đổi thành200 với danh sách rỗng
+hoặc sửa coverage bằng tay. Prediction history/biểu đồ risk có thể dùng trước.
+
+## 7. Tránh Argo và HPA tranh nhau số replica
+
+Bootstrap Argo hiện bỏ qua đúng trường `/spec/replicas` của bảy Deployment có HPA:
+Business API, Frontend, Ingestion, ML chính, ML shadow, Processing Worker và RAG.
+`RespectIgnoreDifferences=true` giữ quyền scale cho HPA khi sync resource khác.
+Images, env, probes, volumes và tất cả trường khác vẫn được Argo quản lý.
+Storage Consumer không có HPA nên số replica vẫn lấy từ GitOps selector.
+
+`prune=false` vẫn được giữ. ConfigMap hash cũ không còn được tham chiếu có thể làm
+Argo báo OutOfSync dù workload đã Ready. Chỉ prune ConfigMap đã kiểm tra không còn
+được workload/Job dùng; không bật prune toàn bộ để xóa PVC, Secret hoặc archive.
+
+## 8. Kết quả kiểm chứng trên cụm đang có
+
+Đã kiểm bằng trình duyệt đăng nhập OIDC thật và API qua Business facade:
+
+- Processing history trả200, có records thật và coverage COMPLETE.
+- Trang tiếp theo giữ cùng snapshot và không trùng result IDs.
+- Biểu đồ risk trả200, có buckets và markers.
+- Thiếu token trả401; máy ngoài phạm vi token trả403.
+- Business UI hiển thị bảng lịch sử Processing với khoảng thời gian được chọn.
+- CSV nhỏ trả200 và bytes CSV thật.
+- Parquet chạy qua job202 -> SUCCEEDED -> download200, kiểm magic bytes PAR1.
+
+Raw history phải được kiểm lại sau khi archive/catalog backfill bắt kịp. Kết quả
+trên là kiểm chứng local trên image đang chạy, không phải benchmark100 máy hoặc
+xác nhận HA/production. Không lưu tokens, CSV thật, screenshots runtime hoặc
+credentials vào repo; bằng chứng chi tiết nằm trong `local/.local/` gitignored.

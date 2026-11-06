@@ -16,6 +16,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 from .common import LOCAL, apply, checkout, kube, read, write_json
 from .credentials import initialize
+from .secret_store import put_local_secrets
 
 ISSUER = "https://127.0.0.1:18490/realms/maintai"
 HISTORY_ISSUER = "http://127.0.0.1:18091/maintai-history"
@@ -92,7 +93,7 @@ def prepare():
                 "issuer": HISTORY_ISSUER, "service_subject": subject, "signing_key_id": keys["kid"],
                 "jwks": keys["jwks"], "adapter_image": previous.get("adapter_image"),
                 "raw_bucket": previous.get("raw_bucket", "maintai-raw")}
-    for field in ("archive_group_prefix", "archive_lineage"):
+    for field in ("archive_group_prefix", "archive_lineage", "archive_replicas"):
         if field in previous: document[field] = previous[field]
     target.write_text(json.dumps(document, indent=2) + "\n")
     print("Private RSA/cursor keys preserved; public selector contains verified service subject.")
@@ -112,15 +113,8 @@ def seed():
             "AWS_REGION": "us-east-1", "AWS_DEFAULT_REGION": "us-east-1",
         },
     }
-    program = """import sys,json,boto3
-c=boto3.client('secretsmanager',endpoint_url='http://localhost:4566',region_name='ap-southeast-1',aws_access_key_id='test',aws_secret_access_key='test')
-for name,value in json.load(sys.stdin).items():
- try:c.create_secret(Name=name,SecretString=json.dumps(value))
- except c.exceptions.ResourceExistsException:c.put_secret_value(SecretId=name,SecretString=json.dumps(value))
-print('History secrets stored in local Secrets Manager; values not printed.')
-"""
-    print(kube("exec", "-i", "deployment/localstack", "--", "python", "-c", program,
-               namespace="localstack", stdin=json.dumps(documents), capture=True).strip())
+    put_local_secrets(documents)
+    print("History secrets stored in local Secrets Manager; values not printed.")
     # These two bootstrap fields are not managed by ESO. Preserve all existing data.
     for name, field, value in (
         ("local-postgres-bootstrap", "processing_history_meta_password", password),

@@ -25,6 +25,14 @@ def pins():
     return read(ROOT / "local/versions/platform.lock.json")
 
 
+def local_autoscaling_options():
+    names = ("business-api", "frontend", "ingestion-api", "ml-service", "ml-service-shadow", "processing-worker", "rag-service")
+    return {"ignoreDifferences": [{"group": "apps", "kind": "Deployment", "name": name,
+                                    "jsonPointers": ["/spec/replicas"]} for name in names],
+            "syncPolicy": {"automated": {"prune": False, "selfHeal": True},
+                           "syncOptions": ["FailOnSharedResource=true", "PruneLast=true", "RespectIgnoreDifferences=true"]}}
+
+
 def up():
     initialize()
     version = run(["k3d", "version"], capture=True)
@@ -206,6 +214,9 @@ def bootstrap_argocd():
                              "spec": {"project": "maintai-local", "source": {"repoURL": remote, "targetRevision": revision, "path": path},
                                       "destination": {"server": "https://kubernetes.default.svc", "namespace": NAMESPACE},
                                       "syncPolicy": {"automated": {"prune": False, "selfHeal": True}, "syncOptions": ["FailOnSharedResource=true", "PruneLast=true"]}}})
+        if name == "apps":
+            # HPA owns replica counts; Argo still owns images, env, probes and storage.
+            applications[-1]["spec"].update(local_autoscaling_options())
     kube("apply", "-f", "-", namespace="argocd", stdin=yaml.safe_dump_all([project, *applications]))
     print("Argo follows three local paths in the pushed branch; production roots are not included.")
 
