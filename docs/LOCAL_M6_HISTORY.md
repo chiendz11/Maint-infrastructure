@@ -280,7 +280,8 @@ Sau khi archive đã bắt kịp, catalog vẫn có thể báo LAGGING. Một cl
 code cũ dừng ngay khi đọc EOF cũ, chưa đọc các record mới đã tồn tại. Read API từ
 chối raw history theo coverage là đúng; nguyên nhân nằm ở audit chưa đi tới mốc mới.
 
-App PR #40 (`fix/m6-catalog-live-history`, source 63a17fa) sửa đúng điều kiện này:
+[App PR #40](https://github.com/chiendz11/MaintAI/pull/40)
+(`fix/m6-catalog-live-history`, source 63a17fa) sửa đúng điều kiện này:
 chỉ dừng tại EOF khi position đã đạt watermark được chụp; nếu chưa thì tiếp tục
 poll trong deadline đã có. Trường hợp không có record mới vẫn giữ frontier cũ,
 không tự khai COMPLETE, không commit offset của audit và không bỏ kiểm checksum.

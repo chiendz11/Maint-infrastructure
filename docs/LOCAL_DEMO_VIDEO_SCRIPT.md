@@ -89,7 +89,8 @@ Dữ liệu thử, alert và audit trong buổi chạy thử được giữ nguy
 - Cho hai máy chạy Bình thường một lúc. Ghi nhớ thời điểm bắt đầu để truy vấn History.
 - Kiểm tra trước một alert OPEN để quay lifecycle. Với alert cũ, giữ nguyên evidence
   và giải thích đó là snapshot tại thời điểm cảnh báo được mở.
-- Trong History, chọn **khoảng 1 phút có dữ liệu**. Khoảng này đã được kiểm tra trên
+- Trong History, chọn **khoảng 1 phút có dữ liệu đã kết thúc trước hiện tại 1–2 phút**
+  để catalog nền có thời gian đồng bộ. Khoảng ngắn đã được kiểm tra trên
   laptop. Chưa dùng kết quả đó để khẳng định cửa sổ hàng giờ có cùng độ trễ.
 - Chạy thử scenario trước buổi quay để chọn khoảng dữ liệu thực sự có HIGH/CRITICAL.
   Không đổi threshold, trả prediction giả hoặc sửa DB để ép cảnh báo xuất hiện.
@@ -153,8 +154,10 @@ Ingestion, Kafka, Processing/ML, Business và UI; sau đó vào nhánh archive.
 >
 > Processing Worker nhận bản ghi, kiểm tra chất lượng dữ liệu, gọi model suy
 > luận và áp dụng risk policy. Kết quả được lưu cùng thông tin nguồn và phiên
-> bản. Outbox Relay tiếp tục phát kết quả đã lưu sang Kafka để Business cập nhật
-> trạng thái phục vụ giao diện.
+> bản. Worker lưu kết quả và ý định phát sự kiện trong cùng một transaction.
+> Outbox Relay phát kết quả đã lưu sang Kafka để Business cập nhật trạng thái
+> phục vụ giao diện. Cơ chế dedup và kiểm thứ tự giúp tránh hiệu ứng trùng hoặc
+> cập nhật trạng thái lùi khi có retry.
 >
 > Song song với xử lý dự đoán, Storage Consumer lưu dữ liệu gốc vào MinIO và
 > công bố catalog có checksum, phiên bản object và coverage. Khi người dùng xem
@@ -272,7 +275,7 @@ lịch sử hoặc sửa DB để quay lại trạng thái OPEN.
 **Thao tác chính xác:**
 
 1. Business → chi tiết M-001 → `Lịch sử`.
-2. Đặt “Từ thời điểm” và “Đến thời điểm” thành **một phút có dữ liệu vừa chạy**.
+2. Đặt “Từ thời điểm” và “Đến thời điểm” thành **một phút đã kết thúc trước hiện tại khoảng 2 phút**.
 3. “Nguồn lịch sử” chọn `Kết quả xử lý` → `Áp dụng`.
 4. Chỉ vào source event, kết quả và thông tin version; chuyển trang nếu có.
 5. Ở biểu đồ, chọn metric `risk_score`, chọn độ phân giải phù hợp rồi áp dụng biểu đồ.
