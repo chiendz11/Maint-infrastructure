@@ -70,6 +70,15 @@
         "maintai-processed"
       ],
       "write": []
+    },
+    "history": {
+      "read": [
+        "maintai-raw",
+        "maintai-processed"
+      ],
+      "write": [
+        "maintai-processed"
+      ]
     }
   }
 }
