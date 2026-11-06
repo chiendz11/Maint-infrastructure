@@ -87,7 +87,8 @@ repository credentials: với repo private, operator phải cấp repository Sec
 cho Argo ngoài Git trước khi sync.
 
 Platform tạo PostgreSQL17 + pgvector0.8, bốn topics12 partitions, Kafka4 KRaft
-một broker, MinIO với bảy bucket versioned, Keycloak dev và TLS identity gateway.
+một broker, MinIO với bảy bucket nền có versioning, Keycloak dev và TLS identity gateway.
+History M6 có thêm namespace raw theo Kafka lineage; xem hướng dẫn M6 bên dưới.
 Monitoring là Application riêng. Bootstrap Jobs chạy sau datastores bằng sync
 waves và chỉ làm platform initialization; owner SQL migrations nằm ở bước sau.
 
@@ -229,3 +230,7 @@ Xem [hướng dẫn M6](../docs/LOCAL_M6_HISTORY.md) để tạo delegation/curs
 khôi phục Secrets Manager/ESO, cấp quyền metadata, bật hai API và kiểm raw catalog.
 History không cần thêm service thường trực hoặc sửa source ứng dụng. Giữ dữ liệu
 private qua restart và không reset Kafka offsets để chữa lỗi archive.
+
+[Kịch bản và lời thoại video demo](../docs/LOCAL_DEMO_VIDEO_SCRIPT.md): bản quay
+13–15 phút, các thao tác theo UI, History/export, phần RAG API mở rộng và các giới
+hạn cần nói đúng theo kết quả đã chạy.

@@ -1,8 +1,9 @@
 # Bật M6 History trên local k3d
 
 Ngày 06/11/2026. Business và Processing Read API đã có code M6. Tài liệu này
-triển khai cấu hình/credential/grants tại hai repo platform, dùng lại image app
-đang chạy. Không thêm History service hoặc DB riêng.
+triển khai cấu hình/credential/grants tại hai repo platform. Hai image API được
+dùng lại; riêng Storage Consumer được sửa lỗi EOF cũ và build image mới từ source
+63a17fa để raw catalog hoạt động trong luồng live. Không thêm History service hoặc DB riêng.
 
 ## Luồng request
 
@@ -12,8 +13,25 @@ login chỉ SELECT dữ liệu nguồn và một login `processing_history_meta`
 CRUD các bảng metadata trong schema `history_meta`.
 
 Business giữ private RSA signing key. Processing chỉ lấy public JWKS qua local
-adapter; JWT delegation sống tối đa60 giây, có actor/machine scope và `azp` khớp
+adapter; JWT delegation sống tối đa 60 giây, có actor/machine scope và `azp` khớp
 subject thật của service token Keycloak. Hai API có cursor keys độc lập.
+
+Ví dụ, khi người dùng mở lịch sử máy M-001, Business kiểm tra token đăng nhập,
+sau đó ký delegation cho đúng người dùng và đúng phạm vi máy. Read API kiểm tra
+cả danh tính service Business lẫn delegation này trước khi đọc dữ liệu.
+
+| Cấu hình mới | Vì sao cần |
+| --- | --- |
+| Private RSA key tại Business | Ký thông tin người đang yêu cầu lịch sử; không thay khóa đăng nhập Keycloak |
+| Public JWKS cho Read API | Kiểm chữ ký của Business mà không cần giữ private key |
+| Cursor keys riêng từng API | Bảo vệ cursor phân trang, ngăn sửa nội dung hoặc dùng sai phạm vi |
+| Login source chỉ SELECT | Đọc readings, prediction và kết quả xử lý trong Processing DB |
+| Login metadata CRUD | Lưu snapshot thành viên trang, tiến độ catalog và trạng thái export; không ghi outcome/inference |
+| MinIO user riêng cho History | Đọc đúng object version của raw và tạo/tải export ở prefix được cấp quyền |
+
+Snapshot lưu danh sách bản ghi của lần truy vấn đầu, để chuyển sang trang tiếp
+không bị trùng hoặc bỏ sót do dữ liệu mới vừa đến. Metadata này nằm trong cùng
+Processing DB, ở schema riêng; không thêm một database hoặc service History.
 
 ## 1. Chuẩn bị khóa và subject
 
@@ -25,8 +43,8 @@ Tại root infrastructure, sau khi Keycloak local sẵn sàng:
 .venv/bin/python -m localdev.history seed
 ```
 
-`prepare` tạo một lần RSA3072 và hai cursor keys32 bytes tại
-`local/.local/secrets/history.json`, mode0600. Chạy lại giữ khóa. Nó lấy service
+`prepare` tạo một lần RSA 3072 bit và hai cursor keys 32 byte tại
+`local/.local/secrets/history.json`, mode 0600. Chạy lại giữ khóa. Nó lấy service
 token qua HTTPS của Keycloak, kiểm RS256/issuer/audience/expiry/role trước khi
 ghi subject vào public selector `MaintAI-gitops/config/local/history-runtime.json`.
 Public selector không chứa private key hoặc cursor secret.
@@ -88,9 +106,9 @@ cũng gọi cùng hàm wiring, tránh mất M6 khi tái sinh manifests.
 
 Business API có thêm các biến BUSINESS_HISTORY_* và mount Secret riêng.
 Processing có PROCESSING_HISTORY_* cùng metadata credential riêng. Endpoint
-JWKS nằm ở adapter có sẵn của Business, port18091 nội bộ; Read API gọi qua proxy
+JWKS nằm ở adapter có sẵn của Business, port 18091 nội bộ; Read API gọi qua proxy
 loopback, phù hợp guard của local-test. MinIO cũng được nối qua loopback của Read API.
-Chỉ adapter của hai API được đổi image; không cần build lại app.
+Hai API chỉ đổi adapter. Riêng Storage cần image sửa lỗi audit như mục 9 bên dưới.
 
 `PROCESSING_RETENTION_ENABLED=false` và `PROCESSING_CLEANER_DRY_RUN=true` được giữ
 rõ ràng. Bật History không cho phép xóa dữ liệu nguồn.
@@ -99,21 +117,21 @@ rõ ràng. Bật History không cho phép xóa dữ liệu nguồn.
 
 1. Hai Deployment Ready; ESO M6 báo SecretSynced.
 2. Trong Business UI, chọn máy -> Lịch sử; chọn khoảng thời gian có dữ liệu.
-3. Predictions trả200 và có records; Sensor readings có raw/catalog coverage.
-4. Timeseries/charts trả200; kiểm cursor trang tiếp không trùng membership.
+3. Predictions trả 200 và có records; Sensor readings có raw/catalog coverage.
+4. Timeseries/charts trả 200; kiểm cursor trang tiếp không trùng membership.
 5. CSV nhỏ trả file thật. Export lớn/Parquet cần job/artifact đã SUCCEEDED.
-6. Thiếu auth vẫn401, sai scope vẫn403; không dùng token browser gọi trực tiếp Read API.
+6. Thiếu auth vẫn 401, sai scope vẫn 403; không dùng token browser gọi trực tiếp Read API.
 
-Nếu raw trả503, kiểm tuổi/coverage của Storage catalog, quyền MinIO và đồng bộ
+Nếu raw trả 503, kiểm tuổi/coverage của Storage catalog, quyền MinIO và đồng bộ
 catalog metadata. Không bỏ checksum hoặc thay unavailable bằng danh sách rỗng.
-Nếu History trả401, kiểm delegation issuer, kid/JWKS và service subject trước.
+Nếu History trả 401, kiểm delegation issuer, kid/JWKS và service subject trước.
 
 ## Vận hành khóa
 
 Giữ `history.json` qua restart và chia sẻ đúng Secret giữa replicas cùng API.
-Khóa ký khác cursor keys; hai API cũng không dùng chung cursor secret. Khi thay
-key/kid phải giữ public key cũ đủ thời gian token/cursor còn hiệu lực, cập nhật
-selector và rollout có kiểm soát. Đổi Secret không tự làm process nạp lại khóa.
+Khóa ký khác cursor keys; hai API cũng không dùng chung cursor secret. Runbook
+này giữ nguyên khóa qua restart và không tự rotate khóa. Đổi Secret không tự
+làm process nạp lại khóa; thay khóa cần một kế hoạch rotation riêng.
 
 ## 5. Khôi phục sau khi laptop/LocalStack khởi động lại
 
@@ -179,11 +197,12 @@ không dùng thao tác này để che mất dữ liệu broker đã hết retent
 trong bucket cũ vẫn được giữ nhưng **không tự gộp** vào raw history của bucket mới.
 Processing history trong PostgreSQL vẫn được truy vấn như trước.
 
-`archive_replicas` trong selector cho phép từ1 đến3 replica local; lần phục hồi
-này dùng3 để xử lý backlog. Tất cả cùng nhóm theo vai trò, nên Kafka phân chia
+`archive_replicas` trong selector cho phép từ 1 đến 3 replica local; lần phục hồi
+này dùng 3 để xử lý backlog. Tất cả cùng nhóm theo vai trò, nên Kafka phân chia
 partition giữa các replica. Catalog dùng CAS để publisher cũ không làm lùi frontier.
-Không tăng partition hoặc đổi key máy. Có thể đưa về1 sau khi backlog đã bắt kịp;
-review/push selector rồi chạy lại generator thay vì scale tay ngoài GitOps.
+Không tăng partition hoặc đổi key máy. Sau khi backfill đạt COMPLETE, selector
+đã được đưa về 1 replica để chạy demo thường ngày. Khi đổi số replica, review/push
+selector và chạy lại generator thay vì scale tay ngoài GitOps.
 
 Storage Consumer được bật `STORAGE_CATALOG_ENABLED=true`. Hai consumer group
 vẫn lưu accepted/rejected độc lập, chỉ commit offset sau khi object và manifest
@@ -209,9 +228,9 @@ for p in catalog['partitions']:
 PY
 ```
 
-Read API chỉ cho raw history hoạt động khi đủ12 partition accepted có coverage
-`COMPLETE`, không có gap và generation còn mới trong120 giây. Trong lúc backfill,
-503 raw history là trạng thái chưa sẵn sàng; không đổi thành200 với danh sách rỗng
+Read API chỉ cho raw history hoạt động khi đủ 12 partition accepted có coverage
+`COMPLETE`, không có gap và generation còn mới trong 120 giây. Trong lúc backfill,
+503 raw history là trạng thái chưa sẵn sàng; không đổi thành 200 với danh sách rỗng
 hoặc sửa coverage bằng tay. Prediction history/biểu đồ risk có thể dùng trước.
 
 ## 7. Tránh Argo và HPA tranh nhau số replica
@@ -230,15 +249,56 @@ Argo báo OutOfSync dù workload đã Ready. Chỉ prune ConfigMap đã kiểm t
 
 Đã kiểm bằng trình duyệt đăng nhập OIDC thật và API qua Business facade:
 
-- Processing history trả200, có records thật và coverage COMPLETE.
+- Processing history trả 200, có records thật và coverage COMPLETE.
 - Trang tiếp theo giữ cùng snapshot và không trùng result IDs.
-- Biểu đồ risk trả200, có buckets và markers.
-- Thiếu token trả401; máy ngoài phạm vi token trả403.
+- Biểu đồ risk trả 200, có buckets và markers.
+- Thiếu token trả 401; máy ngoài phạm vi token trả 403.
 - Business UI hiển thị bảng lịch sử Processing với khoảng thời gian được chọn.
-- CSV nhỏ trả200 và bytes CSV thật.
-- Parquet chạy qua job202 -> SUCCEEDED -> download200, kiểm magic bytes PAR1.
+- CSV nhỏ trả 200 và bytes CSV thật.
+- Parquet chạy qua job 202 -> SUCCEEDED -> download 200, kiểm magic bytes PAR1.
 
-Raw history phải được kiểm lại sau khi archive/catalog backfill bắt kịp. Kết quả
-trên là kiểm chứng local trên image đang chạy, không phải benchmark100 máy hoặc
+Raw history và biểu đồ torque đã trả 200/COMPLETE sau bản sửa EOF; hai bảng
+Processing/raw đã hiển thị trên UI thật. Cửa sổ kiểm chứng cuối là 1 phút; CSV
+trả 200, Parquet job SUCCEEDED rồi download 200. Sensor vẫn gửi dữ liệu trong
+lượt kiểm chứng. Kết quả này là kiểm chứng local, không phải benchmark 100 máy hoặc
 xác nhận HA/production. Không lưu tokens, CSV thật, screenshots runtime hoặc
 credentials vào repo; bằng chứng chi tiết nằm trong `local/.local/` gitignored.
+
+### Tắt hoặc rollback M6
+
+Lệnh renderer riêng dùng để bật/tái sinh M6 đã bật. Nếu cần tắt, revert bộ commit
+cấu hình đã review hoặc chuyển Argo về revision trước khi bật, rồi kiểm tra env
+thực trong hai Deployment. Chỉ đổi `enabled=false` trong selector và gọi scoped
+renderer không tự gỡ các flags/mounts đã có trong manifest cũ. Giữ metadata, khóa
+và bucket trong lần rollback; tắt API không phải quyết định xóa lịch sử.
+
+
+## 9. Lỗi audit EOF phát hiện khi kiểm tra luồng live
+
+Sau khi archive đã bắt kịp, catalog vẫn có thể báo LAGGING. Một client Kafka giữ
+được thông báo PARTITION_EOF từ fetch trước. Ở lượt sau, watermark đã tăng nhưng
+code cũ dừng ngay khi đọc EOF cũ, chưa đọc các record mới đã tồn tại. Read API từ
+chối raw history theo coverage là đúng; nguyên nhân nằm ở audit chưa đi tới mốc mới.
+
+App PR #40 (`fix/m6-catalog-live-history`, source 63a17fa) sửa đúng điều kiện này:
+chỉ dừng tại EOF khi position đã đạt watermark được chụp; nếu chưa thì tiếp tục
+poll trong deadline đã có. Trường hợp không có record mới vẫn giữ frontier cũ,
+không tự khai COMPLETE, không commit offset của audit và không bỏ kiểm checksum.
+Hai regression tests kiểm cả trường hợp có và chưa có record sau EOF cũ.
+
+Image đã build từ source sạch, import vào k3d và chọn bằng receipt riêng của
+Storage trong `environments/local/apps/release.json`. GitOps ghi source SHA,
+snapshot SHA và image ID thật. Baseline interface lock vẫn là baseline đã review;
+bản vá không đổi Kafka schema, catalog schema hoặc migration. Không dùng việc đổi
+source lock toàn bộ app để bỏ qua review riêng của component này.
+
+Budget `STORAGE_CATALOG_POLL_SECONDS=2` cho phép fetch có thời gian hoàn thành;
+chỉ tăng budget chưa sửa được điều kiện EOF cũ. Cả bản vá và config đều được ghi
+phiên bản. Sau rollout, catalog đủ 12 accepted partitions COMPLETE khi Sensor
+vẫn chạy; native index của Read API đã nhập generation đó và UI đọc được raw.
+
+Lượt kiểm chứng: Storage 80 tests pass, 2 opt-in integration tests skip local;
+CI app có Kafka/MinIO recovery và container checks pass. Hai platform suites có
+28 tests infrastructure và 35 tests GitOps. Xem kết quả CI của PR #40 app, PR #4
+infrastructure và PR #6 GitOps theo đúng head commit; không suy production/HA từ
+các kết quả local này.
