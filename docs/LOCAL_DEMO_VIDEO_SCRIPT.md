@@ -1,6 +1,6 @@
 # Kịch bản và lời thoại video demo MaintAI trên local
 
-Phiên bản kịch bản: 1.1 — cập nhật ngày 07/11/2026. Đối tượng xem: giảng viên đánh giá
+Phiên bản kịch bản: 1.2 — cập nhật ngày 07/11/2026. Đối tượng xem: giảng viên đánh giá
 đồ án. Người trình bày có thể đọc phần **Lời thoại**; các mục **Thao tác** và
 **Kết quả cần thấy** dành cho người quay, không cần đọc lên.
 
@@ -13,6 +13,12 @@ cảnh HPA Business API hoặc cảnh Processing/Kafka, mỗi cảnh thêm kho�
 lên hình. Bản chính kèm một cảnh scale dài khoảng 18–22 phút; nếu thêm cả RAG,
 MLflow và hai cảnh scale thì dự trù khoảng 27–33 phút. Không bắt buộc quay tất cả
 trong một video.
+
+Phần **train → MLflow → rollout candidate** có
+[kịch bản riêng kèm lệnh và lời thoại](LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md), thêm
+khoảng 8–12 phút lên hình. Đây là cảnh thay cho phần giới thiệu MLflow ngắn khi
+đã rehearsal thành công; nên quay thành video riêng nếu muốn giữ bản demo nghiệp
+vụ gọn. Kịch bản triển khai shadow trước, không mặc định đã promote model chính.
 
 ## 1. Phạm vi thực tế để chọn cảnh quay
 
@@ -425,6 +431,12 @@ hồi lỗi; không dùng response mẫu rồi mô tả là kết quả live.
 **Thao tác:** mở http://127.0.0.1:15000. Nếu chưa có run/model, chỉ giới thiệu vai
 trò của UI hoặc bỏ cảnh để video gọn hơn.
 
+Nếu muốn tạo dữ liệu thật cho MLflow rồi quay quá trình triển khai, làm theo
+[kịch bản model rollout](LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md). Kịch bản đó có lệnh
+train HGB, uploader kiểm chứng artifacts/Registry, GitHub PR shadow, Argo sync,
+predict và rollback. Không đọc lời thoại “chưa có registered model” bên dưới
+sau khi đã tạo và kiểm tra được version thật trong chính server đang quay.
+
 **Lời thoại dùng khi chưa có registered model:**
 
 > Đây là giao diện có sẵn của MLflow Server để theo dõi experiment và quản lý
@@ -520,3 +532,28 @@ cải thiện, dùng lời thoại theo đúng hiện tượng trong kịch bả
 Giữ 5 máy rồi tăng tốc lên mục tiêu 100 readings/giây không tương đương kiểm thử
 100 máy, vì số machine keys và phân bố partition khác nhau. Chưa đọc lời thoại
 “đã đáp ứng 100 máy” trước khi có rehearsal đúng inventory và số đo tương ứng.
+
+## 19. Cảnh mở rộng E — Train, MLflow và triển khai candidate
+
+Chi tiết: [LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md](LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md).
+Kịch bản dài 8–12 phút lên hình, gồm:
+
+1. Chọn source commit, kiểm checksum/frozen split, train trong output mới.
+2. Gửi params/metrics/artifacts bằng MLflow SDK, tải lại kiểm bytes và score,
+   tạo Registry version gắn với run thật; giữ `approved_for_release=false`.
+3. Chuẩn bị image và bundle local, mở PR chỉ cập nhật shadow trong GitOps;
+   review/CI/merge vào đúng revision Argo đang theo dõi.
+4. Quan sát Argo sync, Pod Ready, predict thật và metrics của shadow.
+5. Quay hoặc giải thích PR revert; phân biệt triển khai candidate với thay champion.
+
+**Lời dẫn ngắn:**
+
+> Model không được gửi lên MLflow chỉ bằng git push. Training tạo artifacts,
+> SDK ghi kết quả vào MLflow, còn PR GitOps chọn phiên bản để triển khai. Em sẽ
+> kiểm chứng từng bước và triển khai candidate riêng trước khi xét thay model chính.
+
+Phần này mới được soạn ngày 07/11, chưa chạy trong lượt bổ sung tài liệu. Đặc biệt,
+manifest MLflow local đang khai báo 2.19.0 với storage `/tmp`; không suy ra đã có
+persistence hoặc tương thích SDK 3.17.1 từ tài liệu bàn giao trên máy ML khác.
+Workflow publish hiện chưa có ML trong matrix, và helper Worker identity còn
+hỗ trợ Logreg. Runbook ghi rõ các giới hạn này và các gate trước promotion.

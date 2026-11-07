@@ -240,3 +240,9 @@ cảnh HTTP/HPA và Processing/Kafka, các nấc tải, cách đọc số liệu
 phân biệt autoscale với thay đổi capacity qua GitOps và cách khôi phục sau quay.
 Đây là kế hoạch rehearsal; chưa có kết quả load/scale được ghi nhận trong lần
 bổ sung tài liệu ngày 07/11.
+
+[Kịch bản train, MLflow và rollout model](../docs/LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md):
+lệnh train HGB local trong sandbox, upload/kiểm chứng Tracking và Registry,
+GitHub PR cho shadow, Argo sync, predict và rollback. Phân biệt model artifacts
+với source/image, nêu giới hạn MLflow storage/SDK và phần publisher/identity trước
+khi thay champion. Đây là runbook rehearsal, chưa phải kết quả chạy pipeline ML.
