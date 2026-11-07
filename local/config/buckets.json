@@ -7,15 +7,18 @@
     "maintai-approved",
     "maintai-manuals",
     "maintai-drift",
-    "maintai-mlflow"
+    "maintai-mlflow",
+    "maintai-raw-c8c61d245736"
   ],
   "users": {
     "storage": {
       "read": [
-        "maintai-raw"
+        "maintai-raw",
+        "maintai-raw-c8c61d245736"
       ],
       "write": [
-        "maintai-raw"
+        "maintai-raw",
+        "maintai-raw-c8c61d245736"
       ]
     },
     "processing": {
@@ -70,6 +73,16 @@
         "maintai-processed"
       ],
       "write": []
+    },
+    "history": {
+      "read": [
+        "maintai-raw",
+        "maintai-processed",
+        "maintai-raw-c8c61d245736"
+      ],
+      "write": [
+        "maintai-processed"
+      ]
     }
   }
 }

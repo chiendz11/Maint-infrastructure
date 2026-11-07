@@ -87,7 +87,8 @@ repository credentials: với repo private, operator phải cấp repository Sec
 cho Argo ngoài Git trước khi sync.
 
 Platform tạo PostgreSQL17 + pgvector0.8, bốn topics12 partitions, Kafka4 KRaft
-một broker, MinIO với bảy bucket versioned, Keycloak dev và TLS identity gateway.
+một broker, MinIO với bảy bucket nền có versioning, Keycloak dev và TLS identity gateway.
+History M6 có thêm namespace raw theo Kafka lineage; xem hướng dẫn M6 bên dưới.
 Monitoring là Application riêng. Bootstrap Jobs chạy sau datastores bằng sync
 waves và chỉ làm platform initialization; owner SQL migrations nằm ở bước sau.
 
@@ -222,3 +223,26 @@ Sau build ML/Worker: `python -m localdev model-identity`. Sau platform sync và
 import RAG: `python -m localdev prepare-rag`. Groq key mới lưu private mode0600
 rồi cấp bằng `python -m localdev groq-secret`. Chi tiết tại
 [demo preparation](../docs/LOCAL_DEMO_PREPARATION.md). Không tự bật app workloads.
+
+## Bật History M6 trên cụm local đã có
+
+Xem [hướng dẫn M6](../docs/LOCAL_M6_HISTORY.md) để tạo delegation/cursor keys,
+khôi phục Secrets Manager/ESO, cấp quyền metadata, bật hai API và kiểm raw catalog.
+History không cần thêm service thường trực hoặc sửa source ứng dụng. Giữ dữ liệu
+private qua restart và không reset Kafka offsets để chữa lỗi archive.
+
+[Kịch bản và lời thoại video demo](../docs/LOCAL_DEMO_VIDEO_SCRIPT.md): bản quay
+13–15 phút, các thao tác theo UI, History/export, phần RAG API mở rộng và các giới
+hạn cần nói đúng theo kết quả đã chạy.
+
+[Kịch bản scale và lời thoại chi tiết](../docs/LOCAL_SCALE_DEMO_SCRIPT.md): hai
+cảnh HTTP/HPA và Processing/Kafka, các nấc tải, cách đọc số liệu trước–sau,
+phân biệt autoscale với thay đổi capacity qua GitOps và cách khôi phục sau quay.
+Đây là kế hoạch rehearsal; chưa có kết quả load/scale được ghi nhận trong lần
+bổ sung tài liệu ngày 07/11.
+
+[Kịch bản train, MLflow và rollout model](../docs/LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md):
+lệnh train HGB local trong sandbox, upload/kiểm chứng Tracking và Registry,
+GitHub PR cho shadow, Argo sync, predict và rollback. Phân biệt model artifacts
+với source/image, nêu giới hạn MLflow storage/SDK và phần publisher/identity trước
+khi thay champion. Đây là runbook rehearsal, chưa phải kết quả chạy pipeline ML.

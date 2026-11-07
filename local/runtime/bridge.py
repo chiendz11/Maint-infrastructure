@@ -7,17 +7,62 @@ other routes preserve caller Authorization and application authorization.
 
 import http.client
 import http.server
+import json
 import select
 import socket
 import socketserver
 import ssl
 import threading
 import time
+from pathlib import Path
 
 HOP = {"connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
        "te", "trailer", "transfer-encoding", "upgrade"}
 ALLOWED = {"postgres", "kafka", "keycloak", "business-api", "processing-read-api",
-           "ingestion-api", "ml-service", "frontend", "sensor", "simulator-ui"}
+           "ingestion-api", "ml-service", "frontend", "sensor", "simulator-ui", "minio"}
+
+
+def public_jwks(raw):
+    if len(raw) > 16384:
+        raise ValueError("JWKS exceeds local limit")
+    value = json.loads(raw)
+    if set(value) != {"keys"} or not 1 <= len(value["keys"]) <= 4:
+        raise ValueError("Explicit public keys required")
+    for key in value["keys"]:
+        if set(key) != {"kty", "n", "e", "kid", "alg", "use"} or key["kty"] != "RSA" or key["alg"] != "RS256" or key["use"] != "sig":
+            raise ValueError("Only public RS256 signing keys may be served")
+        if not all(isinstance(v, str) and v for v in key.values()):
+            raise ValueError("Invalid public key values")
+    return json.dumps(value).encode()
+
+
+def jwks_server(spec):
+    if spec != {"bind": "0.0.0.0", "port": 18091, "file": "/history-jwks/jwks.json"}:
+        raise ValueError("Only the reviewed internal history JWKS endpoint is supported")
+    path = Path(spec["file"])
+    public_jwks(path.read_bytes())
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_GET(self):
+            if self.path != "/.well-known/jwks.json":
+                self.send_error(404)
+                return
+            try:
+                body = public_jwks(path.read_bytes())
+            except (OSError, ValueError, TypeError, KeyError):
+                self.send_error(503)
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "public, max-age=60")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    return HTTPServer((spec["bind"], spec["port"]), Handler)
 
 
 def forwarded_headers(incoming, *, tls, client_host):
@@ -167,6 +212,7 @@ def http_server(spec, tokens):
 def serve(configuration, tokens, stopped):
     servers = [tcp_server(item) for item in configuration.get("tcp", [])]
     servers += [http_server(item, tokens) for item in configuration.get("http", [])]
+    servers += [jwks_server(item) for item in configuration.get("jwks", [])]
     for server in servers:
         threading.Thread(target=server.serve_forever, daemon=True).start()
     try:

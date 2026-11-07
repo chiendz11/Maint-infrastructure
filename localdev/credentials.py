@@ -10,7 +10,7 @@ from .common import CONTRACT, LOCAL, NAMESPACE, ROOT, apply, read, run, write_js
 
 OWNERS = ("processing", "business", "drift", "knowledge", "mlflow")
 ROLES = tuple(name + "_owner" for name in OWNERS) + (
-    "processing_worker", "processing_relay", "processing_reader", "business_api", "business_consumer", "business_reader"
+    "processing_worker", "processing_relay", "processing_reader", "processing_history_meta", "business_api", "business_consumer", "business_reader"
 )
 
 
@@ -34,6 +34,15 @@ def initialize():
                  "oidc": {name + "_secret": secrets.token_hex(32) for name in ("registry", "processing", "sensor", "ml")},
                  "users": {name: secrets.token_hex(16) for name in ("viewer", "technician", "administrator")},
                  "kafka_cluster_id": base64.urlsafe_b64encode(secrets.token_bytes(16)).decode().rstrip("=")}
+        write_json(LOCAL / "credentials.json", value)
+    # Extend existing local state without rotating any established credential.
+    value = read(LOCAL / "credentials.json")
+    changed = False
+    for section, key in (("postgres", "processing_history_meta_password"), ("minio", "history_password")):
+        if key not in value[section]:
+            value[section][key] = secrets.token_hex(24)
+            changed = True
+    if changed:
         write_json(LOCAL / "credentials.json", value)
 
 
