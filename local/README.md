@@ -234,3 +234,9 @@ private qua restart và không reset Kafka offsets để chữa lỗi archive.
 [Kịch bản và lời thoại video demo](../docs/LOCAL_DEMO_VIDEO_SCRIPT.md): bản quay
 13–15 phút, các thao tác theo UI, History/export, phần RAG API mở rộng và các giới
 hạn cần nói đúng theo kết quả đã chạy.
+
+[Kịch bản scale và lời thoại chi tiết](../docs/LOCAL_SCALE_DEMO_SCRIPT.md): hai
+cảnh HTTP/HPA và Processing/Kafka, các nấc tải, cách đọc số liệu trước–sau,
+phân biệt autoscale với thay đổi capacity qua GitOps và cách khôi phục sau quay.
+Đây là kế hoạch rehearsal; chưa có kết quả load/scale được ghi nhận trong lần
+bổ sung tài liệu ngày 07/11.

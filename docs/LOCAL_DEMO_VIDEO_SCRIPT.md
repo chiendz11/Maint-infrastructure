@@ -1,12 +1,18 @@
 # Kịch bản và lời thoại video demo MaintAI trên local
 
-Phiên bản kịch bản: 1.0 — ngày 06/11/2026. Đối tượng xem: giảng viên đánh giá
+Phiên bản kịch bản: 1.1 — cập nhật ngày 07/11/2026. Đối tượng xem: giảng viên đánh giá
 đồ án. Người trình bày có thể đọc phần **Lời thoại**; các mục **Thao tác** và
 **Kết quả cần thấy** dành cho người quay, không cần đọc lên.
 
 Bản quay chính dài khoảng **13–15 phút**. Nếu quay cả phần RAG API và giới thiệu
 MLflow thì dự trù **17–19 phút**. Quay từng cảnh rồi ghép; thời gian chờ dữ liệu
 hoặc provider có thể cắt ngắn và chú thích thời gian chờ thực tế.
+
+Phần **scale** có [kịch bản và lời thoại riêng](LOCAL_SCALE_DEMO_SCRIPT.md): chọn
+cảnh HPA Business API hoặc cảnh Processing/Kafka, mỗi cảnh thêm khoảng 5–7 phút
+lên hình. Bản chính kèm một cảnh scale dài khoảng 18–22 phút; nếu thêm cả RAG,
+MLflow và hai cảnh scale thì dự trù khoảng 27–33 phút. Không bắt buộc quay tất cả
+trong một video.
 
 ## 1. Phạm vi thực tế để chọn cảnh quay
 
@@ -27,9 +33,14 @@ Các kết quả dưới đây đã được kiểm tra trên cụm local ngày 
 | MLflow | Server/UI truy cập được; lần kiểm tra có 1 experiment và 0 registered models |
 
 **Chọn cảnh theo bảng này:** đưa History vào bản quay chính. RAG hiện quay bằng
-API nội bộ như cảnh 10; không đọc lời thoại rằng nút Copilot trên Business UI đã
-hoàn tất tích hợp. MLflow, drift và training không được coi là đã chạy thành công
+API nội bộ như cảnh mở rộng A ở mục 13; không đọc lời thoại rằng nút Copilot trên
+Business UI đã hoàn tất tích hợp. MLflow, drift và training không được coi là đã chạy thành công
 chỉ vì Deployment, trang UI hoặc dashboard đã tồn tại.
+
+**Phần scale bổ sung ngày 07/11 mới là kịch bản rehearsal**, đã đối chiếu source
+HPA và scheduler. Chưa chạy tạo tải hoặc xác nhận autoscale trong lần bổ sung này;
+lần đọc HPA live không kết nối được cụm. Các kết quả ngày 06/11 ở bảng trên không
+thay cho kết quả kiểm thử tải hoặc chứng minh năng lực 100 máy.
 
 Tên scenario `critical` mô tả cách làm căng đầu vào. Model và risk policy vẫn
 quyết định đầu ra. Trong video, đọc đúng HIGH hoặc CRITICAL đang hiển thị; không
@@ -116,6 +127,10 @@ hoặc quay riêng. Không hứa recovery hoàn tất trong 20–30 giây.
 
 Mốc thời gian là phân bổ nội dung, không phải SLA của phần mềm. Nếu phải đợi
 model, alert hoặc export thì để phần thao tác chạy thật rồi cắt đoạn chờ khi dựng.
+
+Nếu thêm scale, chèn cảnh sau Grafana/GitOps và trước phần kết thúc. Dùng mục 18
+để chọn nội dung; thời lượng chờ HPA, Pod Ready và backlog bắt kịp phải chạy thật
+trước khi cắt/tua nhanh trong bản dựng.
 
 ## 4. Cảnh 1 — Giới thiệu, khoảng 45 giây
 
@@ -470,3 +485,38 @@ chắn đã chọn đúng tài khoản, không chỉ đổi tên hiển thị tr
 
 Bài kiểm chứng History đã xác nhận thiếu token trả 401 và truy cập máy ngoài
 phạm vi trả 403. Không mở phần Authorization hoặc Secret trong bản quay màn hình.
+
+## 18. Cảnh mở rộng D — Scale, khoảng 5–7 phút cho mỗi biến thể
+
+Toàn bộ lệnh chuẩn bị, các nấc tải, timeline từng đoạn và lời thoại dài nằm trong
+[LOCAL_SCALE_DEMO_SCRIPT.md](LOCAL_SCALE_DEMO_SCRIPT.md). Chọn theo điều muốn chứng minh:
+
+| Biến thể | Thao tác chính | Bằng chứng cần quay |
+| --- | --- | --- |
+| A — HTTP/HPA | Tăng request đọc Business API có xác thực, giữ cùng một mức tải khi so sánh | CPU/HPA, Pod mới Ready, throughput HTTP, p95 và lỗi; sau đó giảm tải |
+| B — Pipeline/Kafka | Tăng `SIM_SPEED` qua GitOps, giữ 5 máy và durable state | Tốc độ sinh thực, Kafka lag/assignment, Worker Ready, độ mới telemetry/prediction; sau đó hạ tải và drain |
+
+**Lời dẫn chung:**
+
+> Tiếp theo em kiểm tra khả năng tăng số tiến trình xử lý khi tải thay đổi. Em
+> ghi lại tải đầu vào, số Pod Ready và độ trễ trước khi tăng tải để có điểm so sánh.
+>
+> HPA hiện dùng CPU; Kafka lag là số đo để quan sát tiến độ consumer. Nhóm em chưa
+> cấu hình autoscaling trực tiếp theo Kafka lag, nên em sẽ đọc đúng cơ chế đang chạy.
+
+**Lời kết sau khi đã có số đo:**
+
+> Ở cấu hình và mức tải vừa thử, hệ thống có [N] Pod Ready, [đọc throughput/lag]
+> và [đọc latency/độ mới dữ liệu]. Đây là kết quả của lượt chạy local này.
+>
+> Thiết kế cho phép tăng replica riêng theo thành phần. Tuy nhiên, tăng số Pod
+> trên một laptop vẫn dùng chung tài nguyên máy đó. Khi tăng số máy hoặc tốc độ
+> gửi, nhóm phải đo tiếp ML, DB, Kafka và độ trễ thay vì suy ra năng lực tuyến tính.
+
+Đổi HPA `minReplicas` qua GitOps là một cảnh **người vận hành chọn capacity**;
+không gọi đó là HPA tự phản ứng với tải. Nếu replica không tăng hoặc latency chưa
+cải thiện, dùng lời thoại theo đúng hiện tượng trong kịch bản riêng.
+
+Giữ 5 máy rồi tăng tốc lên mục tiêu 100 readings/giây không tương đương kiểm thử
+100 máy, vì số machine keys và phân bố partition khác nhau. Chưa đọc lời thoại
+“đã đáp ứng 100 máy” trước khi có rehearsal đúng inventory và số đo tương ứng.
