@@ -19,7 +19,7 @@ from pathlib import Path
 HOP = {"connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
        "te", "trailer", "transfer-encoding", "upgrade"}
 ALLOWED = {"postgres", "kafka", "keycloak", "business-api", "processing-read-api",
-           "ingestion-api", "ml-service", "frontend", "sensor", "simulator-ui", "minio"}
+           "ingestion-api", "ml-service", "frontend", "sensor", "simulator-ui", "minio", "rag-service"}
 
 
 def public_jwks(raw):
