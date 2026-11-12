@@ -43,6 +43,7 @@ resource "null_resource" "platform_bootstrap" {
       .venv/bin/python -m localdev build-platform
       .venv/bin/python -m localdev import-images --component minio --component mc --component dev-tools
       .venv/bin/python -m localdev prepare platform
+      git -C ../MaintAI-gitops diff --quiet || (git -C ../MaintAI-gitops commit -am "chore: update platform image receipts" && git -C ../MaintAI-gitops push origin "${var.gitops_revision}")
       .venv/bin/python -m localdev bootstrap-argocd
     EOT
   }
