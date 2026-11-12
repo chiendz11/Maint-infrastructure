@@ -12,6 +12,6 @@ variable "machine_count" {
 
 variable "gitops_revision" {
   type        = string
-  default     = "demo/local-k3d"
+  default     = "feat/local-m6-history"
   description = "Git revision for Argo CD applications in MaintAI-gitops"
 }
