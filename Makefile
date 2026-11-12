@@ -23,6 +23,14 @@ local-status:
 local-check:
 	$(PYTHON) -m localdev.checks
 
+local-provision:
+	mkdir -p local/.local/data/datasets
+	cp ../MaintAI/sensor/data/ai4i2020.csv local/.local/data/datasets/ai4i2020.csv
+	$(PYTHON) -m localdev model-identity
+	$(PYTHON) -m localdev provision
+	$(PYTHON) -m localdev activate-ordering --legacy-writers-drained
+	$(PYTHON) -m localdev.history provision
+
 tf-init:
 	cd terraform/local && terraform init
 

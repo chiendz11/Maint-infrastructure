@@ -44,28 +44,38 @@ resource "null_resource" "platform_bootstrap" {
       .venv/bin/python -m localdev import-images --component minio --component mc --component dev-tools
       .venv/bin/python -m localdev prepare platform
       git -C ../MaintAI-gitops diff --quiet || (git -C ../MaintAI-gitops commit -am "chore: update platform image receipts" && git -C ../MaintAI-gitops push origin "${var.gitops_revision}")
+      
+      export KUBECONFIG="$PWD/local/.local/kubeconfig"
+      
+      # 1. LocalStack (Mock AWS Secrets Manager & S3)
+      kubectl apply -f local/manifests/localstack.yaml
+      kubectl rollout status deployment/localstack -n localstack --timeout=120s
+      
+      # 2. External Secrets Operator (CRDs + Controller)
+      helm upgrade --install external-secrets external-secrets/external-secrets \
+        -n external-secrets --create-namespace --set installCRDs=true --wait
+      kubectl set env deployment/external-secrets -n external-secrets \
+        AWS_ENDPOINT_URL=http://localstack.localstack.svc.cluster.local:4566
+      kubectl apply -f local/manifests/cluster-secret-store.yaml
+      .venv/bin/python local/manifests/seed_localstack_secrets.py
+      .venv/bin/python -m localdev.history seed
+      
+      # 3. Ingress NGINX (Simulating AWS ALB Controller)
+      helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+        -n ingress-nginx --create-namespace \
+        --set controller.ingressClassResource.name=alb \
+        --set controller.ingressClass=alb \
+        --set controller.ingressClassResource.default=true \
+        --wait
+      
+      # 4. Bootstrap Argo CD GitOps Engine
       .venv/bin/python -m localdev bootstrap-argocd
     EOT
   }
 }
 
-resource "null_resource" "provisioning" {
-  depends_on = [null_resource.platform_bootstrap]
-
-  provisioner "local-exec" {
-    working_dir = "${path.module}/../.."
-    command     = <<-EOT
-      mkdir -p local/.local/data/datasets
-      cp ../MaintAI/sensor/data/ai4i2020.csv local/.local/data/datasets/ai4i2020.csv
-      .venv/bin/python -m localdev model-identity
-      .venv/bin/python -m localdev provision
-      .venv/bin/python -m localdev activate-ordering --legacy-writers-drained
-    EOT
-  }
-}
-
 resource "null_resource" "argocd_sync" {
-  depends_on = [null_resource.provisioning]
+  depends_on = [null_resource.platform_bootstrap]
 
   provisioner "local-exec" {
     working_dir = "${path.module}/../.."
