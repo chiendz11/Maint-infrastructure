@@ -108,7 +108,7 @@ def seed():
         "maintai/local/history-business": {"signing-key.pem": keys["private_key"], "cursor-keys.json": cursor(keys["business_cursor"])},
         "maintai/local/history-processing-keys": {"cursor-keys.json": cursor(keys["processing_cursor"])},
         "maintai/local/history-processing-env": {
-            "PROCESSING_HISTORY_METADATA_DATABASE_URL": f"postgresql://processing_history_meta:{password}@127.0.0.1:25432/processing_db",
+            "PROCESSING_HISTORY_METADATA_DATABASE_URL": f"postgresql://processing_history_meta:{password}@postgres:5432/processing_db",
             "AWS_ACCESS_KEY_ID": "maintai-history", "AWS_SECRET_ACCESS_KEY": credentials["minio"]["history_password"],
             "AWS_REGION": "us-east-1", "AWS_DEFAULT_REGION": "us-east-1",
         },

@@ -75,7 +75,7 @@ def secret_resources():
     value = read(LOCAL / "credentials.json")
     pg, s3 = value["postgres"], value["minio"]
 
-    def dsn(role, owner, loopback=True, driver="postgresql"):
+    def dsn(role, owner, loopback=False, driver="postgresql"):
         address = "127.0.0.1:25432" if loopback else "postgres:5432"
         return f"{driver}://{role}:{pg[role + '_password']}@{address}/{owner}_db"
 

@@ -35,9 +35,9 @@ def documents(credentials, groq_key):
 
     return {
         "maintai/local/database": {
-            "BUSINESS_DATABASE_URL": url("business_api", "business", "127.0.0.1:25432"),
-            "PROCESSING_DATABASE_URL": url("processing_worker", "processing", "127.0.0.1:25432"),
-            "PROCESSING_READ_DATABASE_URL": url("processing_reader", "processing", "127.0.0.1:25432"),
+            "BUSINESS_DATABASE_URL": url("business_api", "business", "postgres:5432"),
+            "PROCESSING_DATABASE_URL": url("processing_worker", "processing", "postgres:5432"),
+            "PROCESSING_READ_DATABASE_URL": url("processing_reader", "processing", "postgres:5432"),
             "KNOWLEDGE_DATABASE_URL": url("knowledge_owner", "knowledge", "postgres:5432"),
             "DRIFT_DATABASE_URL": url("drift_owner", "drift", "postgres:5432"),
         },
