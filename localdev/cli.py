@@ -159,7 +159,7 @@ def prepare(args):
         command += ["--profile", str(Path(args.profile).resolve())]
     if args.target == "apps":
         command += ["--app-root", str(checkout("app_checkout").resolve())]
-    subprocess.run(command, cwd=checkout("gitops_checkout"), check=True)
+    subprocess.run(command, cwd=checkout("gitops_checkout"), env={**os.environ, "PYTHONPATH": "scripts"}, check=True)
     print("Prepared GitOps working files only. Review, commit and push them before Argo sync.")
 
 

@@ -12,6 +12,6 @@ variable "machine_count" {
 
 variable "gitops_revision" {
   type        = string
-  default     = "feat/local-m6-history"
+  default     = "main"
   description = "Git revision for Argo CD applications in MaintAI-gitops"
 }

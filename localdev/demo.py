@@ -135,6 +135,7 @@ def prepare_rag():
             str(job_file),
         ],
         cwd=checkout("gitops_checkout"),
+        env={**os.environ, "PYTHONPATH": "scripts"},
         check=True,
     )
     job = yaml.safe_load(job_file.read_text())
