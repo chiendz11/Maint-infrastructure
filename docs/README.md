@@ -18,7 +18,7 @@ Tài liệu quản lý Hạ tầng Cloud (`AWS Terraform`) và cụm **Local `k3
 - [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — Stack Terraform Production (`bootstrap`, `domain`, `platform`, `argocd`) & Local `k3d` (`CoreDNS`, `90b9f97`).
 - [PLATFORM_CONTRACT.md](architecture/PLATFORM_CONTRACT.md) — Hợp đồng bàn giao hạ tầng `platform-contract-v2` sang `MaintAI-gitops`.
 - [SECURITY.md](architecture/SECURITY.md) — Ranh giới bảo mật, OIDC, IRSA, private subnets, PostgreSQL owner isolation & secrets.
-- [VERSIONING.md](architecture/VERSIONING.md) — Khóa provider/AWS pins, `local/versions/app-source.lock.json` (`e67d42d`), Iris blueprint provenance.
+- [VERSIONING.md](architecture/VERSIONING.md) — Khóa provider/AWS pins, `local/versions/app-source.lock.json` (`ee488ad`), Iris blueprint provenance.
 
 ### Operations
 - [BOOTSTRAP.md](operations/BOOTSTRAP.md) — Thứ tự khởi tạo Terraform bootstrap/domain/platform/argocd và manual DB migrations.

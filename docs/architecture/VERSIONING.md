@@ -17,7 +17,7 @@ Tài liệu này quy định việc khóa phiên bản cho Terraform providers, 
 
 ## 2. Local Infrastructure Locks & Reference Provenance
 
-- **App Source Lock (`local/versions/app-source.lock.json`):** Khóa chính xác Git commit của `chiendz11/MaintAI` (hiện đồng bộ tại **`e67d42d0d2fd347c686a39928906c20b68f03992`**, nhánh `main`) và SHA-256 của toàn bộ Dockerfiles, settings và kafka/risk-policy interfaces. CI (`ci.yml`) checkout trực tiếp `.ci-app` ở commit này và kiểm tra hash từng file qua `python -m localdev.checks --app-root .ci-app`.
+- **App Source Lock (`local/versions/app-source.lock.json`):** Khóa chính xác Git commit của `chiendz11/MaintAI` (hiện đồng bộ tại **`ee488adc7707dab61b86538e1a1f0e05b7adf4b5`**, nhánh `main`) và SHA-256 của toàn bộ Dockerfiles, settings và kafka/risk-policy interfaces. CI (`ci.yml`) checkout trực tiếp `.ci-app` ở commit này và kiểm tra hash từng file qua `python -m localdev.checks --app-root .ci-app`.
 - **Platform & Local Contract Locks:**
   - `local/versions/platform.lock.json`: Khóa digest images nền tảng local (MinIO/MC source tar hashes, dev-tools, Argo CD installer SHA-256, k3d v5.9.0 / kubectl pins).
   - `versions/local-contracts.lock.json`: Bảo vệ schema local `1.0.0` (`image-receipt`, `local-profile`).

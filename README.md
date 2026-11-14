@@ -56,4 +56,4 @@ Image builds, cluster bootstrap and a full local demo require separate runtime e
 Start with [local runbook](local/README.md) (Terraform local tại `terraform/local/` và CLI `localdev`).
 
 See [source synchronization & RISK-POLICY-01](../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md) for the
-current app lock (`e67d42d`), public GitOps URL (`main`) and app-owned risk policy ConfigMap flow.
+current app lock (`ee488ad`), public GitOps URL (`main`) and app-owned risk policy ConfigMap flow.
