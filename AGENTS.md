@@ -2,15 +2,15 @@
 
 User requested code only: do not run tests, builds, Terraform init/validate/plan/apply,
 Kustomize/Helm render checks, Docker, AWS/Kubernetes mutations or GitHub workflows
-without a later request. Read README.md, docs/ARCHITECTURE.md, docs/VERSIONING.md
+without a later request. Read README.md, docs/architecture/ARCHITECTURE.md, docs/architecture/VERSIONING.md
 and contracts/ before changing code. This initial delivery is unvalidated.
 
-Current application target: ../MaintAI/docs/MaintAI_System_Contracts_v1_4_DEPLOYMENT_PROVENANCE.md,
+Current application target: ../MaintAI/docs/architecture/MaintAI_System_Contracts_v1_4_DEPLOYMENT_PROVENANCE.md,
 revision1.4.0, sections34–42; Guide §53 and PROC-ORDER-01 apply to Processing.
 Platform code/contract baseline remains1.3.1/2.0.0 until a reviewed migration. The user's 2026-10-18 decision
 overrides simulator routing: a separate Simulator UI talks to Sensor Simulator
 Control API; Business API/main frontend do not proxy simulator control. Record
-this in docs/ARCHITECTURE.md rather than silently rewriting supplied source docs.
+this in docs/architecture/ARCHITECTURE.md rather than silently rewriting supplied source docs.
 Terraform owns AWS/EKS and Argo CD bootstrap; GitOps owns in-cluster add-ons and
 application workloads. Keep data ownership, outbox/inbox and ordering semantics.
 Drift is outside the alert path and never retrains or promotes a model.
@@ -23,7 +23,7 @@ Do not alter ../MaintAI, the old underscore folders, or the Iris reference repos
 
 ## PROC-ORDER-01 scope
 
-Read ../MaintAI/docs/PROCESSING_CONCURRENCY_AND_ORDERING.md and implementation
+Read ../MaintAI/docs/subsystems/PROCESSING_CONCURRENCY_AND_ORDERING.md and implementation
 report. SDK0.2.0/bundle1.1.0 implement internal Processing concurrency/fences and
 ordered relay; there is no additional Scheduler/Coordinator Deployment or DB.
 Terraform must not manage owner SQL migrations or application queue flags.
@@ -34,7 +34,7 @@ changes require measured capacity and a separately scoped infrastructure request
 
 ## Local k3d + Argo CD — current ownership
 
-Read local/README.md in infrastructure or docs/LOCAL_DEVELOPMENT.md in GitOps,
+Read local/README.md in infrastructure or docs/operations/LOCAL_DEVELOPMENT.md in GitOps,
 plus the local contract/catalog/source locks before local changes. The current
 user authorized implementation in both platform repositories. Infrastructure
 owns cluster/private kubeconfig/secrets/Argo bootstrap; GitOps owns local platform
@@ -57,5 +57,5 @@ merged application, pinning ML/RAG bases in the app, and committing/pushing both
 platform repositories to public remotes. This supersedes the initial no-commit/
 no-push scope for this delivery. Push-triggered source CI is part of publication;
 no cloud provisioning, cluster mutation or workload activation was requested.
-The local app-source lock and LOCAL_SOURCE_SYNC.md record the reviewed commit.
+The local app-source lock (`local/versions/app-source.lock.json`) and `../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md` record the reviewed commit.
 Do not replace pending model/image/runtime evidence with example values.

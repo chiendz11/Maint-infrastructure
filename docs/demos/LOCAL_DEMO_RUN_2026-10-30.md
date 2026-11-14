@@ -1,9 +1,22 @@
 # Báo cáo chạy demo MaintAI trên laptop — 30/10/2026
 
+> [!NOTE]
+> **Ghi chú lịch sử & cập nhật sau ngày 14/11/2026:** Đây là báo cáo thực nghiệm gốc (historical evidence) của đợt chạy cụm `maintai-local` ngày 30/10/2026 từ nhánh `demo/local-k3d` (hợp nhất phần desired-state GitOps từ `MaintAI-gitops`). Từ ngày 14/11/2026, toàn bộ PR của 3 repo đã được merge vào **`main`** (app SHA `e67d42d`, tích hợp M6 History/Export, CoreDNS không còn loopback adapter sidecar, `cert-manager` TLS và `ml-service-shadow`).
+
 Đây là kết quả chạy thật trên cluster `maintai-local`, không phải kết luận rút ra
 từ Dockerfile hoặc trạng thái CI. Phạm vi là 5 máy giả lập, mỗi máy 1 reading/giây,
 telemetry/prediction trên Business UI, điều khiển Simulator, Alert lifecycle,
 raw archive vào MinIO và một lời gọi RAG/Groq trực tiếp.
+
+## 0. Cấu hình Desired State GitOps đã áp dụng trong lượt chạy
+
+1. Platform/App roots chọn helper/app image đã build và import thật với `imagePullPolicy: Never` (lưu trong `MaintAI-gitops/environments/local/apps/release.json`).
+2. Bật 12 app runtimes sau khi hoàn tất migration/grants/provision/ordering/knowledge evidence.
+3. Chuyển RAG cache PVC về sync wave `0`, tránh deadlock với `WaitForFirstConsumer`.
+4. Keycloak có heap/memory phù hợp và `native basic scope` để JWT chứa `sub`; pod annotation realm hash làm mới service clients khi cấu hình thay đổi.
+5. RAG dùng Groq model `openai/gpt-oss-20b`, API key qua Secret; MiniLM embedding và PVC giữ vai trò dependency retrieval.
+6. Business/Storage đặt `KAFKA_POLL_INTERVAL_SECONDS=0.01` với SDK `0.3.1` bounded prefetch; Relay local đặt `OUTBOX_POLL_INTERVAL_MS=10` (thay 250ms mặc định) để outbox DB về `0` ở tải 5 readings/s.
+7. Dọn riêng các ConfigMap hash cũ không còn Pod/Deployment/StatefulSet tham chiếu; giữ nguyên PVC, DB, Secrets và `prune=false`.
 
 ## 1. Source và môi trường đã sử dụng
 
