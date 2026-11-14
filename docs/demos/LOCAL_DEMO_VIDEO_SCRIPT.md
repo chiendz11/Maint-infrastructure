@@ -92,7 +92,7 @@ k -n maintai-local get externalsecrets
 
 Trước khi quay: ba Applications phải Synced/Healthy, các Pod cần dùng phải Ready,
 các ExternalSecret phải Ready=True. Job Completed là trạng thái bình thường.
-Nếu có lỗi, xử lý trước theo `LOCAL_M6_HISTORY.md`; không đọc dòng “hệ thống khỏe”
+Nếu có lỗi, xử lý trước theo `../operations/LOCAL_M6_HISTORY.md`; không đọc dòng “hệ thống khỏe”
 khi màn hình đang báo lỗi hoặc chưa đồng bộ.
 
 Lần bật M6 đã tạo một archive namespace mới theo Kafka lineage, giữ bucket cũ.

@@ -5,12 +5,8 @@ vẫn sở hữu AWS; `local/` không gọi Terraform hoặc AWS. GitOps sở h�
 trong cluster, gồm Kafka/PostgreSQL/MinIO, monitoring và ứng dụng. Hai ZIP chỉ là
 nguồn tham khảo; không giải nén đè, không dùng entrypoint hoặc config DTO cũ.
 
-**Trạng thái 29/10: source đã public; CI đã chạy source/unit checks và xác minh
-app revision/checksums.** Xem [CI](https://github.com/chiendz11/Maint-infrastructure/actions/workflows/ci.yml)
-và [source sync](../docs/LOCAL_SOURCE_SYNC.md). Image builds, k3d, Argo bootstrap,
-Terraform và E2E chưa được chạy trong đợt publication. Các lệnh dưới là runbook
-cho operator, không phải lịch sử đã thực hiện. Pin metadata không chứng minh
-image đã chạy hoặc phiên bản tương thích.
+**Trạng thái hiện tại (14/11/2026):** Toàn bộ PR local/Phase-2/CoreDNS đã merge vào **`main`**, đồng bộ với `MaintAI` commit `e67d42d` (`local/versions/app-source.lock.json`). Xem [CI](https://github.com/chiendz11/Maint-infrastructure/actions/workflows/ci.yml)
+và [source sync](../../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md). Các lệnh dưới đây mô tả cơ chế CLI `localdev` chi tiết (bên cạnh 1-click Terraform tại `terraform/local/`).
 
 ## 1. Bản đồ công việc
 
@@ -48,8 +44,8 @@ python3 -m venv .venv
 `https://github.com/chiendz11/MaintAI-gitops.git`, revision `main`, đường dẫn
 app/GitOps checkout và machine_count (mặc định5, giới hạn100 cho profile).
 Settings mẫu đã có URL remote thật; `init` giữ nguyên settings riêng nếu đã tồn tại.
-Source phải được commit trước khi build; desired state phải push trước khi Argo
-đọc được. Xem [source sync](../docs/LOCAL_SOURCE_SYNC.md) để đối chiếu revision app.
+Source phải được commit trước khi build; desired state phải push lên `main` trước khi Argo
+đọc được. Xem [source sync](../../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md) để đối chiếu revision app.
 
 CLI không tự cài binaries hoặc ghi vào ~/.kube/config. Nếu cluster `maintai-local`
 đã do tooling khác tạo và chưa có marker của bootstrap này, `up` từ chối nhận
@@ -147,16 +143,14 @@ Không dùng flag drained nếu writers thực sự chưa dừng. Không reset i
 owner. Checksum file được kiểm ở prepare và init container trước khi app chạy.
 
 RISK-POLICY-01: policy chuẩn ở app `processing/config/risk-policies/`; GitOps
-chọn app SHA/version/hashes và cấp ConfigMap. Không đặt policy chỉnh tay trong
-`data/fixtures/` hoặc profile Worker `files`. CLI prepare apps kiểm app checkout
-và truyền `--app-root` tới GitOps generator. Xem
-[policy ownership và migration](../docs/LOCAL_RISK_POLICY.md).
+chọn app SHA/version/hashes và cấp ConfigMap `processing-risk-policy` (`/local/config/risk-policy.json`). Không đặt `files.risk_policy` hay policy chỉnh tay trong
+`data/fixtures/` (CLI sẽ từ chối). CLI `prepare apps` kiểm app checkout khớp `local/versions/app-source.lock.json`
+và truyền `--app-root` tới GitOps generator. Chi tiết xem
+[source sync & policy](../../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md).
 
-ML inference và RAG đã có Dockerfile chạy service, được pin Python base digest
-trong app PR19. Local ML dùng `MAINTAI_LOCAL_ONLY=1` và
-`MODEL_DIR=/local/models/logreg-baseline-v0`; đây là baseline local, không có JWT
-provider production. RAG dùng Groq API; cần Secret rag-groq, knowledge đã ingest và writable
-embedding cache PVC dùng chung với owner Job. Xem docs/LOCAL_DEMO_PREPARATION.md. Hai component vẫn cần runtime review và receipts thật.
+ML inference và RAG đã có Dockerfile chạy service, được pin Python base digest. Local ML dùng `MAINTAI_LOCAL_ONLY=1` và
+`MODEL_DIR=/local/models/logreg-baseline-v0` (và `ml-service-shadow` cho candidate). RAG dùng Groq API; cần Secret `rag-groq`, knowledge đã ingest và writable
+embedding cache PVC dùng chung với owner Job (`python -m ingestion.prepare_demo`). Chi tiết quy trình model identity và RAG xem tại [`MaintAI/docs/operations/LOCAL_DEMO_PREPARATION.md`](../../MaintAI/docs/operations/LOCAL_DEMO_PREPARATION.md).
 Training Dockerfile còn placeholder; Drift còn cần pin base/review adapter; MLflow
 cần reviewed base/server/SDK pins. Build từ chối FROM chưa khóa digest và app
 checkout khác source lock. `--allow-dirty` chỉ ghi nhận thay đổi source ngoài
@@ -220,28 +214,28 @@ lượt code-first này. Khi được yêu cầu kiểm chứng, chạy từng t
 ## Demo preparation — 30/10
 
 Sau build ML/Worker: `python -m localdev model-identity`. Sau platform sync và
-import RAG: `python -m localdev prepare-rag`. Groq key mới lưu private mode0600
+import RAG: `python -m localdev prepare-rag`. Groq key mới lưu private mode `0600`
 rồi cấp bằng `python -m localdev groq-secret`. Chi tiết tại
-[demo preparation](../docs/LOCAL_DEMO_PREPARATION.md). Không tự bật app workloads.
+[demo preparation](../../MaintAI/docs/operations/LOCAL_DEMO_PREPARATION.md). Không tự bật app workloads.
 
 ## Bật History M6 trên cụm local đã có
 
-Xem [hướng dẫn M6](../docs/LOCAL_M6_HISTORY.md) để tạo delegation/cursor keys,
+Xem [hướng dẫn M6](../docs/operations/LOCAL_M6_HISTORY.md) để tạo delegation/cursor keys,
 khôi phục Secrets Manager/ESO, cấp quyền metadata, bật hai API và kiểm raw catalog.
 History không cần thêm service thường trực hoặc sửa source ứng dụng. Giữ dữ liệu
 private qua restart và không reset Kafka offsets để chữa lỗi archive.
 
-[Kịch bản và lời thoại video demo](../docs/LOCAL_DEMO_VIDEO_SCRIPT.md): bản quay
+[Kịch bản và lời thoại video demo](../docs/demos/LOCAL_DEMO_VIDEO_SCRIPT.md): bản quay
 13–15 phút, các thao tác theo UI, History/export, phần RAG API mở rộng và các giới
 hạn cần nói đúng theo kết quả đã chạy.
 
-[Kịch bản scale và lời thoại chi tiết](../docs/LOCAL_SCALE_DEMO_SCRIPT.md): hai
+[Kịch bản scale và lời thoại chi tiết](../docs/demos/LOCAL_SCALE_DEMO_SCRIPT.md): hai
 cảnh HTTP/HPA và Processing/Kafka, các nấc tải, cách đọc số liệu trước–sau,
 phân biệt autoscale với thay đổi capacity qua GitOps và cách khôi phục sau quay.
 Đây là kế hoạch rehearsal; chưa có kết quả load/scale được ghi nhận trong lần
 bổ sung tài liệu ngày 07/11.
 
-[Kịch bản train, MLflow và rollout model](../docs/LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md):
+[Kịch bản train, MLflow và rollout model](../docs/demos/LOCAL_MODEL_ROLLOUT_VIDEO_SCRIPT.md):
 lệnh train HGB local trong sandbox, upload/kiểm chứng Tracking và Registry,
 GitHub PR cho shadow, Argo sync, predict và rollback. Phân biệt model artifacts
 với source/image, nêu giới hạn MLflow storage/SDK và phần publisher/identity trước

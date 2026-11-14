@@ -7,6 +7,7 @@ The AWS baseline remains1.3.1; local source locks track the reviewed app commit.
 CI checks source separately from image builds, provisioning and deployment.
 
 ```text
+docs/                   Organized documentation (architecture, operations, demos)
 terraform/bootstrap/     encrypted versioned state, GitHub OIDC and plan/apply roles
 terraform/domain/        DNS zone (or existing zone) and DNS-validated wildcard ACM
 terraform/platform/      VPC/EKS/RDS/S3/SQS/DynamoDB/ECR/IAM and non-secret outputs
@@ -18,9 +19,9 @@ scripts/                explicit plan/apply runner, allow-list exporter, handoff
 versions/               contract SHA locks
 ```
 
-Read [architecture](docs/ARCHITECTURE.md), [bootstrap](docs/BOOTSTRAP.md),
-[platform contract](docs/PLATFORM_CONTRACT.md), [versioning](docs/VERSIONING.md),
-[security](docs/SECURITY.md) and [provenance](docs/reference-lock.json).
+Read [docs index](docs/README.md), [architecture](docs/architecture/ARCHITECTURE.md), [bootstrap](docs/operations/BOOTSTRAP.md),
+[platform contract](docs/architecture/PLATFORM_CONTRACT.md), [versioning](docs/architecture/VERSIONING.md) and
+[security](docs/architecture/SECURITY.md).
 
 Terraform owns cloud resources and Argo bootstrap. In-cluster apps/add-ons belong
 to `../MaintAI-gitops`; its public remote is
@@ -31,13 +32,13 @@ must be supplied before any future plan. `enable_gitops_root=false` by default.
 
 Đã chạy demo local ngày 30/10/2026 trên nhánh `demo/local-k3d`: core pipeline,
 Simulator/Business UI, Alert lifecycle, MinIO archive và RAG/Groq trực tiếp.
-Xem [báo cáo triển khai và cách mở demo](docs/LOCAL_DEMO_RUN_2026-10-30.md)
+Xem [báo cáo triển khai và cách mở demo](docs/demos/LOCAL_DEMO_RUN_2026-10-30.md)
 để phân biệt kết quả đã chạy, source receipts và các phần M6/M7 còn thiếu.
 
 ## Application alignment — PROC-ORDER-01,2026-10-23
 
-The current app design is [v1.4 + PROC-ORDER-01](../MaintAI/docs/PROCESSING_CONCURRENCY_AND_ORDERING.md),
-with [SDK0.2/bundle1.1 implementation evidence](../MaintAI/docs/PROCESSING_ORDERING_IMPLEMENTATION_REPORT.md).
+The current app design is [v1.4 + PROC-ORDER-01](../MaintAI/docs/subsystems/PROCESSING_CONCURRENCY_AND_ORDERING.md),
+with [SDK0.2/bundle1.1 implementation evidence](../MaintAI/docs/reports/PROCESSING_ORDERING_IMPLEMENTATION_REPORT.md).
 This supplements the existing platform1.3.1 baseline; it is not a full platform
 migration or deployment. Keyed queues/offset coordinator stay inside Worker;
 ordered key cursor stays with Relay. No new workload/database/UI is introduced.
@@ -52,10 +53,7 @@ platform and app desired state. AWS production sources remain independently
 versioned. Source is published and checked by [GitHub CI](https://github.com/chiendz11/Maint-infrastructure/actions/workflows/ci.yml).
 Image builds, cluster bootstrap and a full local demo require separate runtime evidence.
 
-Start with [local runbook](local/README.md).
+Start with [local runbook](local/README.md) (Terraform local tại `terraform/local/` và CLI `localdev`).
 
-See [source synchronization and publication](docs/LOCAL_SOURCE_SYNC.md) for the
-current app lock, public GitOps URL and remaining demo runtime inputs.
-
-[App-owned risk policy](docs/LOCAL_RISK_POLICY.md): operator chuyển app source tới
-GitOps; policy được cấp bằng ConfigMap, không là private infrastructure input.
+See [source synchronization & RISK-POLICY-01](../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md) for the
+current app lock (`e67d42d`), public GitOps URL (`main`) and app-owned risk policy ConfigMap flow.
