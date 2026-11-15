@@ -144,7 +144,7 @@ Trong kiến trúc Pure Declarative GitOps, tầng `terraform/argocd/` đóng va
 | **AWS Secrets Manager + KMS** | **LocalStack (`secretsmanager`, `s3`)** | Giữ nguyên CRD `ClusterSecretStore` + `ExternalSecret` ở `<project>-gitops` |
 | **Route53 + ACM** | **Ingress-NGINX + `cert-manager` (`selfSigned` / Local CA)** | Giữ nguyên TLS termination qua Ingress |
 | **ECR Publisher + Pull** | **GHCR + Image tag `sha-<40>`** | Image Updater vẫn poll registry và mở PR thật về GitOps |
-| **IRSA AWS Auth** | **Bootstrap Secret cho ESO & `argocd-image-updater-git-creds`** | Nạp out-of-band bằng CLI an toàn (đọc token qua `getpass`/stdin, kubeconfig `0600`) |
+| **IRSA AWS Auth** | **Bootstrap Secret cho ESO (`aws-secrets-manager` + `aws-secrets-manager-argocd`)** | `localdev image-updater-pat` nạp `maintai/local/gitops` vào LocalStack qua stdin; ESO đồng bộ thành `argocd/argocd-image-updater-git-creds` (giống 100% flow AWS Secrets Manager Production) |
 
 ### Nguyên tắc bảo mật cho Local Bootstrap CLI
 - **Không lưu PAT hay API key vào file `.env` commit lên Git hay tham số dòng lệnh** (tránh lộ trong `ps aux` và shell history): luôn đọc qua stdin/biến môi trường tạm (`getpass`) rồi `kubectl apply -f -` trực tiếp vào cluster.

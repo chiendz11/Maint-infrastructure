@@ -71,26 +71,35 @@ class PolicyHandoff(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "app-owned ConfigMap"):
                 cli.prepare(SimpleNamespace(target="apps", profile=str(self.profile_path)))
 
-    def test_image_updater_pat_requires_private_file_and_writes_via_stdin(self):
+    def test_image_updater_pat_requires_private_file_and_seeds_localstack(self):
         token_file = self.root / "pat.txt"
         token_file.write_text("github_pat_example_secret_12345\n", encoding="utf-8")
         os.chmod(token_file, 0o644)
-        with patch.object(cli, "validate_context"):
+        with patch.object(cli, "validate_context"), patch.object(cli, "LOCAL", self.root):
             with self.assertRaisesRegex(ValueError, "chmod 600"):
                 cli.install_image_updater_pat(
                     SimpleNamespace(username="chiendz11", token_file=str(token_file), stdin=False)
                 )
 
         os.chmod(token_file, 0o600)
-        with patch.object(cli, "validate_context"), patch.object(cli, "kube") as mock_kube:
+        with patch.object(cli, "validate_context"), patch.object(cli, "LOCAL", self.root), patch.object(cli, "put_local_secrets") as mock_put:
             cli.install_image_updater_pat(
                 SimpleNamespace(username="chiendz11", token_file=str(token_file), stdin=False)
             )
-            mock_kube.assert_called_once()
-            self.assertEqual(mock_kube.call_args.kwargs["namespace"], "argocd")
-            manifest = mock_kube.call_args.kwargs["stdin"]
-            self.assertIn("argocd-image-updater-git-creds", manifest)
-            self.assertIn("github_pat_example_secret_12345", manifest)
+            mock_put.assert_called_once_with(
+                {
+                    "maintai/local/gitops": {
+                        "username": "chiendz11",
+                        "password": "github_pat_example_secret_12345",
+                    }
+                }
+            )
+            saved_pat = self.root / "secrets/image-updater-pat"
+            saved_user = self.root / "secrets/image-updater-username"
+            self.assertEqual(saved_pat.read_text(encoding="utf-8").strip(), "github_pat_example_secret_12345")
+            self.assertEqual(saved_user.read_text(encoding="utf-8").strip(), "chiendz11")
+            self.assertEqual(saved_pat.stat().st_mode & 0o077, 0)
+            self.assertEqual(saved_user.stat().st_mode & 0o077, 0)
 
 
 if __name__ == "__main__":

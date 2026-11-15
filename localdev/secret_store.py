@@ -50,12 +50,29 @@ def documents(credentials, groq_key):
     }
 
 
+def gitops_document(username, pat):
+    if not username or "\n" in username or not pat or "\n" in pat:
+        raise ValueError("Provide nonempty single-line GitHub username and PAT")
+    return {"maintai/local/gitops": {"username": username, "password": pat}}
+
+
+def _read_private_file(path, message):
+    if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
+        raise ValueError(message)
+    return path.read_text(encoding="utf-8").strip()
+
+
 def main():
-    key_file = LOCAL / "secrets/groq-api-key"
-    if key_file.is_symlink() or not key_file.is_file() or key_file.stat().st_mode & 0o077:
-        raise ValueError("Groq key must be a private regular file (mode600)")
-    put_local_secrets(documents(read(LOCAL / "credentials.json"), key_file.read_text().strip()))
-    print("Database/storage/Groq entries restored in owned LocalStack; existing passwords preserved.")
+    key = _read_private_file(LOCAL / "secrets/groq-api-key", "Groq key must be a private regular file (mode600)")
+    entries = documents(read(LOCAL / "credentials.json"), key)
+    pat_file = LOCAL / "secrets/image-updater-pat"
+    if pat_file.exists() or pat_file.is_symlink():
+        pat = _read_private_file(pat_file, "Image Updater PAT must be a private regular file (mode600)")
+        user_file = LOCAL / "secrets/image-updater-username"
+        username = _read_private_file(user_file, "Image Updater username must be a private regular file (mode600)")
+        entries.update(gitops_document(username, pat))
+    put_local_secrets(entries)
+    print("Database/storage/Groq/GitOps entries restored in owned LocalStack; existing passwords preserved.")
 
 
 if __name__ == "__main__":
