@@ -10,13 +10,13 @@ CI checks source separately from image builds, provisioning and deployment.
 docs/                   Organized documentation (architecture, operations, demos)
 terraform/bootstrap/     encrypted versioned state, GitHub OIDC and plan/apply roles
 terraform/domain/        DNS zone (or existing zone) and DNS-validated wildcard ACM
-terraform/platform/      VPC/EKS/RDS/S3/SQS/DynamoDB/ECR/IAM and non-secret outputs
+terraform/platform/      VPC/EKS/RDS/S3/SQS/DynamoDB/ECR/IRSA, SSM metadata & secret shells
 terraform/argocd/        Argo CD Helm release and separately gated root Application
-contracts/              platform-contract-v2 consumed by MaintAI-gitops
-scripts/                explicit plan/apply runner, allow-list exporter, handoff
-.github/workflows/      source CI, opt-in plan/apply and platform handoff
+contracts/local/         local k3d profile and image-receipt JSON schemas
+scripts/                 static source policy and explicit plan/apply runner
+.github/workflows/      CI (Terraform validate + local checks), opt-in plan & apply
 .github/rulesets/       main protection as code; not applied to GitHub
-versions/               contract SHA locks
+versions/               local contract and production baseline SHA locks
 ```
 
 Read [docs index](docs/README.md), [architecture](docs/architecture/ARCHITECTURE.md), [bootstrap](docs/operations/BOOTSTRAP.md),
@@ -56,4 +56,4 @@ Image builds, cluster bootstrap and a full local demo require separate runtime e
 Start with [local runbook](local/README.md) (Terraform local tại `terraform/local/` và CLI `localdev`).
 
 See [source synchronization & RISK-POLICY-01](../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md) for the
-current app lock (`ee488ad`), public GitOps URL (`main`) and app-owned risk policy ConfigMap flow.
+current app lock (`0c25e6b`), public GitOps URL (`main`) and app-owned risk policy ConfigMap flow.

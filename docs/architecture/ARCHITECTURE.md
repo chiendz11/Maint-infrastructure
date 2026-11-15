@@ -20,9 +20,9 @@ Tài liệu này mô tả kiến trúc **Hạ tầng & Bootstrap (IaC)** do `Mai
 
 1. **`terraform/bootstrap/`:** Khởi tạo S3 encrypted backend state, KMS key, GitHub OIDC provider và IAM roles phân tách `plan` (ReadOnly) vs `apply`.
 2. **`terraform/domain/`:** Route53 hosted zone / delegated subdomain và wildcard ACM certificate (`*.domain` phục vụ Main App và Simulator Edge).
-3. **`terraform/platform/`:** VPC/subnets private, NAT, Amazon EKS, Managed Node Groups & IRSA roles, Amazon RDS PostgreSQL 17 (`pgvector`) cho 5 databases tách chủ sở hữu, Amazon S3 versioned buckets, SQS/DLQ (dataset manifest trigger), DynamoDB training lease ledger, ECR repositories và AWS Secrets Manager metadata (chỉ tạo ARN, không đưa giá trị secret vào Terraform variables/state).
+3. **`terraform/platform/`:** VPC/subnets private, NAT, Amazon EKS, Managed Node Groups & IRSA roles (gồm `external-secrets` và `image-updater` đọc ECR cho `argocd-image-updater-controller`), Amazon RDS PostgreSQL 17 (`pgvector`) cho 5 databases tách chủ sở hữu, Amazon S3 versioned buckets, SQS/DLQ (dataset manifest trigger), DynamoDB training lease ledger, 15 ECR repositories đồng bộ với `MaintAI`, AWS Secrets Manager metadata shells (gồm `argocd-image-updater-git-creds`, không chứa plaintext trong TF state) và role publisher duy nhất `app` cho `chiendz11/MaintAI`.
 4. **`terraform/argocd/`:** Cài đặt Argo CD Helm release (ClusterIP nội bộ, không bật local admin trên cloud) và root Application bootstrap.
-5. **Handoff `platform-contract-v2`:** Script `scripts/build_platform_contract.py` xuất các metadata không nhạy cảm (RDS endpoint, bucket names, KMS/IAM ARNs, validated ACM ARN) sang `MaintAI-gitops` qua GitHub dispatch/PR; tuyệt đối không xuất password, kubeconfig hay secret values.
+5. **Handoff không qua dispatch (`AWS SSM + Outputs`):** `terraform/platform/outputs.tf` ghi metadata không nhạy cảm (RDS endpoint, buckets, KMS/IRSA/ECR/Secrets Manager ARNs, validated ACM ARN) vào **AWS SSM Parameter Store** (`/maintai/v13/production/platform-metadata`) và Terraform outputs; `MaintAI-gitops` hoạt động theo Pure Declarative YAML (không dùng webhook `platform-reconcile`).
 
 ---
 

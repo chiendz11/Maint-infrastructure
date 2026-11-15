@@ -42,15 +42,15 @@ resource "aws_s3_bucket_policy" "data" {
   for_each = aws_s3_bucket.data
   bucket   = each.value.id
   policy = jsonencode({ Version = "2012-10-17", Statement = [{
-    Effect = "Deny", Principal = "*", Action = "s3:*"
-    Resource = [each.value.arn, "${each.value.arn}/*"]
+    Effect    = "Deny", Principal = "*", Action = "s3:*"
+    Resource  = [each.value.arn, "${each.value.arn}/*"]
     Condition = { Bool = { "aws:SecureTransport" = "false" } }
   }] })
 }
 resource "aws_sqs_queue" "dataset_dlq" {
   name                      = "${local.name}-dataset-events-dlq"
   message_retention_seconds = 1209600
-  sqs_managed_sse_enabled    = true
+  sqs_managed_sse_enabled   = true
 }
 resource "aws_sqs_queue" "dataset" {
   name                       = "${local.name}-dataset-events"
@@ -58,16 +58,16 @@ resource "aws_sqs_queue" "dataset" {
   visibility_timeout_seconds = 300
   receive_wait_time_seconds  = 20
   max_message_size           = 262144
-  sqs_managed_sse_enabled     = true
-  redrive_policy = jsonencode({ deadLetterTargetArn = aws_sqs_queue.dataset_dlq.arn, maxReceiveCount = 5 })
+  sqs_managed_sse_enabled    = true
+  redrive_policy             = jsonencode({ deadLetterTargetArn = aws_sqs_queue.dataset_dlq.arn, maxReceiveCount = 5 })
 }
 resource "aws_sqs_queue_policy" "dataset" {
   queue_url = aws_sqs_queue.dataset.id
   policy = jsonencode({ Version = "2012-10-17", Statement = [{
-    Effect = "Allow", Principal = { Service = "s3.amazonaws.com" }, Action = "sqs:SendMessage"
+    Effect   = "Allow", Principal = { Service = "s3.amazonaws.com" }, Action = "sqs:SendMessage"
     Resource = aws_sqs_queue.dataset.arn
     Condition = {
-      ArnEquals = { "aws:SourceArn" = aws_s3_bucket.data["datasets"].arn }
+      ArnEquals    = { "aws:SourceArn" = aws_s3_bucket.data["datasets"].arn }
       StringEquals = { "aws:SourceAccount" = data.aws_caller_identity.current.account_id }
     }
   }] })
@@ -112,7 +112,7 @@ resource "aws_ecr_repository" "workload" {
     filter      = "sha256-*.att"
     filter_type = "WILDCARD"
   }
-  force_delete         = false
+  force_delete = false
   image_scanning_configuration { scan_on_push = true }
   encryption_configuration { encryption_type = "AES256" }
   lifecycle { prevent_destroy = true }

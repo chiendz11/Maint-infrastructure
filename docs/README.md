@@ -15,11 +15,11 @@ Tài liệu quản lý Hạ tầng Cloud (`AWS Terraform`) và cụm **Local `k3
 ## Danh mục tài liệu
 
 ### Architecture & Governance
-- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — Stack Terraform Production (`bootstrap`, `domain`, `platform`, `argocd`) & Local `k3d` (`CoreDNS`, `90b9f97`).
-- [PLATFORM_CONTRACT.md](architecture/PLATFORM_CONTRACT.md) — Hợp đồng bàn giao hạ tầng `platform-contract-v2` sang `MaintAI-gitops`.
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — Stack Terraform Production (`bootstrap`, `domain`, `platform`, `argocd`), AWS SSM handoff & Local `k3d` (`CoreDNS`).
+- [PLATFORM_CONTRACT.md](architecture/PLATFORM_CONTRACT.md) — Metadata bàn giao qua AWS SSM Parameter Store (`/maintai/v13/production/platform-metadata`) & Terraform outputs.
 - [INFRASTRUCTURE_BLUEPRINT.md](architecture/INFRASTRUCTURE_BLUEPRINT.md) — Tài liệu mẫu chuẩn (project-agnostic) để tái sử dụng kiến trúc IaC Terraform + Local Cloud-Parity cho các dự án khác.
-- [SECURITY.md](architecture/SECURITY.md) — Ranh giới bảo mật, OIDC, IRSA, private subnets, PostgreSQL owner isolation & secrets.
-- [VERSIONING.md](architecture/VERSIONING.md) — Khóa provider/AWS pins, `local/versions/app-source.lock.json` (`ee488ad`), Iris blueprint provenance.
+- [SECURITY.md](architecture/SECURITY.md) — Ranh giới bảo mật, OIDC, IRSA (`external-secrets`, `image-updater`), private subnets, PostgreSQL owner isolation & secrets.
+- [VERSIONING.md](architecture/VERSIONING.md) — Khóa provider/AWS pins, `local/versions/app-source.lock.json`, Iris blueprint provenance.
 
 ### Operations
 - [BOOTSTRAP.md](operations/BOOTSTRAP.md) — Thứ tự khởi tạo Terraform bootstrap/domain/platform/argocd và manual DB migrations.

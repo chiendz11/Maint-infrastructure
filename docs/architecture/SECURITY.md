@@ -13,13 +13,18 @@ owner-specific credentials further constrain service access; database owner role
 are created outside Terraform by an explicit operation.
 
 IRSA trust binds exact service account+namespace. Training cannot approve datasets;
-S3 raw does not trigger training. App publisher ECR access is separate from platform
-publisher, dataset publisher, model dispatch and runtime credentials. Ingestion has
-no DB credential. External Secrets can read only explicit secret ARNs and KMS key.
+S3 raw does not trigger training. App publisher (`MaintAI`) ECR push access covers
+exact app/MLOps repositories and is separate from dataset publisher, read-only GitOps
+checks (`gitops_reader`), `argocd-image-updater-controller` ECR-read IRSA, and runtime
+credentials (`MaintAI-gitops` is pure declarative YAML and holds no ECR push role).
+Ingestion has no DB credential. External Secrets can read only explicit secret ARNs
+and KMS key.
 
-Secret values are never Terraform resources/variables. No actual environment tfvars,
-keys or state were copied from Iris or earlier MaintAI folders. Provider locks were
-reused as versioned source, not installed/validated during this task.
+Secret values are never Terraform resources/variables (enforced by `scripts/source_policy.py`
+across both `aws_secretsmanager_secret_version` and SSM `SecureString` literals). No actual
+environment tfvars, keys or state were copied from Iris or earlier MaintAI folders. Provider
+locks are validated statically (`terraform fmt`/`validate`) on every PR and `plan` runs
+for AWS roots with OIDC read role.
 
 Single NAT/single-AZ RDS default is a demo profile. Review HA, backups/restores,
 retention, resource sizing and management ingress before deployment. These are
