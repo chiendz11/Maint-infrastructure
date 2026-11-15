@@ -1,6 +1,7 @@
 """Explicit operators. Importing this module does not create or deploy anything."""
 
 import argparse
+import getpass
 import hashlib
 import json
 import os
@@ -154,13 +155,70 @@ def prepare(args):
                     raise ValueError("Local artifact differs from its reviewed checksum")
     bundle = LOCAL / "release-receipts.json"
     write_json(bundle, receipts)
-    command = [sys.executable, "-m", "localdev.release", args.target, "--receipts", str(bundle)]
-    if args.profile:
-        command += ["--profile", str(Path(args.profile).resolve())]
-    if args.target == "apps":
-        command += ["--app-root", str(checkout("app_checkout").resolve())]
-    subprocess.run(command, cwd=checkout("gitops_checkout"), env={**os.environ, "PYTHONPATH": "scripts"}, check=True)
-    print("Prepared GitOps working files only. Review, commit and push them before Argo sync.")
+    print("Verified local image receipts and source policy; Pure Declarative manifests in MaintAI-gitops are updated via kustomization.yaml / Argo CD Image Updater PRs.")
+
+
+def _load_pinned_manifest(upstream):
+    """Fetch, verify SHA-256, and pin images for an upstream component manifest."""
+    if not upstream.get("image_pins_complete"):
+        raise ValueError("Installer still has unresolved upstream image identities")
+    with urllib.request.urlopen(upstream["url"], timeout=30) as response:
+        raw = response.read(5_000_001)
+    if hashlib.sha256(raw).hexdigest() != upstream["sha256"]:
+        raise ValueError("Installer bytes differ from the reviewed pinned version")
+    documents = [doc for doc in yaml.safe_load_all(raw) if isinstance(doc, dict)]
+
+    def replace_images(value):
+        if isinstance(value, dict):
+            image = value.get("image")
+            if isinstance(image, str) and image in upstream["images"]:
+                value["image"] = upstream["images"][image]
+            for item in value.values():
+                replace_images(item)
+        elif isinstance(value, list):
+            for item in value:
+                replace_images(item)
+
+    replace_images(documents)
+    return documents
+
+
+def install_image_updater_pat(args):
+    """Create Secret/argocd-image-updater-git-creds in argocd namespace via stdin."""
+    validate_context()
+    username = args.username.strip()
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,38}", username):
+        raise ValueError("Invalid GitHub username")
+    if args.token_file:
+        path = Path(args.token_file)
+        if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
+            raise ValueError("PAT file must be a private regular file (chmod 600)")
+        token = path.read_text(encoding="utf-8").strip()
+    elif args.stdin:
+        token = sys.stdin.read(4097).strip()
+    else:
+        token = getpass.getpass("GitHub Fine-grained PAT: ").strip()
+    if not token or len(token) > 4096 or any(ch.isspace() for ch in token):
+        raise ValueError("GitHub Fine-grained PAT is empty or invalid")
+    secret_doc = {
+        "apiVersion": "v1",
+        "kind": "Secret",
+        "metadata": {
+            "name": "argocd-image-updater-git-creds",
+            "namespace": "argocd",
+            "labels": {"maintai.io/owner": "local-bootstrap"},
+        },
+        "type": "Opaque",
+        "stringData": {"username": username, "password": token},
+    }
+    kube(
+        "apply",
+        "-f",
+        "-",
+        namespace="argocd",
+        stdin=yaml.safe_dump_all([secret_doc], sort_keys=False),
+    )
+    print("Secret argocd-image-updater-git-creds installed in namespace argocd via stdin (value not logged).")
 
 
 def bootstrap_argocd():
@@ -177,29 +235,11 @@ def bootstrap_argocd():
     advertised = run(["git", "ls-remote", remote, "refs/heads/" + revision], capture=True).split()
     if not advertised or advertised[0] != head:
         raise ValueError("Remote branch does not contain the reviewed local HEAD")
-    if not (gitops / "environments/local/platform/release.json").exists():
-        raise ValueError("Prepare and commit real platform image receipts before bootstrap")
+    if not (gitops / "applications/local/kustomization.yaml").exists() or not (gitops / "environments/local/platform/kustomization.yaml").exists():
+        raise ValueError("GitOps checkout missing Pure Declarative local Kustomize roots")
     install_secrets()
-    upstream = pins()["argocd"]
-    if not upstream.get("image_pins_complete"):
-        raise ValueError("Argo installer still has unresolved upstream image identities")
-    with urllib.request.urlopen(upstream["url"], timeout=30) as response:
-        raw = response.read(3_000_001)
-    if hashlib.sha256(raw).hexdigest() != upstream["sha256"]:
-        raise ValueError("Argo installer bytes differ from the reviewed version")
-    documents = list(yaml.safe_load_all(raw))
-
-    def replace_images(value):
-        if isinstance(value, dict):
-            if isinstance(value.get("image"), str):
-                value["image"] = upstream["images"][value["image"]]
-            for item in value.values():
-                replace_images(item)
-        elif isinstance(value, list):
-            for item in value:
-                replace_images(item)
-
-    replace_images(documents)
+    all_pins = pins()
+    documents = _load_pinned_manifest(all_pins["argocd"])
     for doc in documents:
         if doc.get("kind") == "ConfigMap" and doc.get("metadata", {}).get("name") == "argocd-cm":
             doc.setdefault("data", {})["resource.customizations.health.networking.k8s.io_Ingress"] = "hs = {}\nhs.status = \"Healthy\"\nreturn hs\n"
@@ -207,25 +247,20 @@ def bootstrap_argocd():
     kube("apply", "--server-side", "--field-manager=maintai-local-bootstrap", "-f", "-", namespace="argocd", stdin=yaml.safe_dump_all(documents))
     kube("rollout", "status", "deployment/argocd-repo-server", "--timeout=300s", namespace="argocd")
     kube("rollout", "status", "statefulset/argocd-application-controller", "--timeout=300s", namespace="argocd")
+    updater_docs = _load_pinned_manifest(all_pins["argocd_image_updater"])
+    for doc in updater_docs:
+        if doc.get("kind") == "ConfigMap" and doc.get("metadata", {}).get("name") == "argocd-image-updater-config":
+            doc.setdefault("data", {}).update({
+                "git.user": "argocd-image-updater[bot]",
+                "git.email": "argocd-image-updater[bot]@users.noreply.github.com",
+                "interval": "2m",
+                "log.level": "info",
+            })
+    kube("apply", "--server-side", "--field-manager=maintai-local-bootstrap", "-f", "-", namespace="argocd", stdin=yaml.safe_dump_all(updater_docs))
+    kube("rollout", "status", "deployment/argocd-image-updater-controller", "--timeout=300s", namespace="argocd")
     local_apps = gitops / "applications/local"
-    if (local_apps / "kustomization.yaml").exists():
-        kube("apply", "-k", str(local_apps), namespace="argocd")
-    else:
-        project = {"apiVersion": "argoproj.io/v1alpha1", "kind": "AppProject", "metadata": {"name": "maintai-local", "namespace": "argocd"},
-                   "spec": {"sourceRepos": [remote], "destinations": [{"server": "https://kubernetes.default.svc", "namespace": NAMESPACE}],
-                            "clusterResourceWhitelist": [{"group": "", "kind": "Namespace"}],
-                            "namespaceResourceBlacklist": [{"group": "argoproj.io", "kind": "Application"}, {"group": "argoproj.io", "kind": "AppProject"}]}}
-        applications = []
-        for name, path in CONTRACT["applications"].items():
-            applications.append({"apiVersion": "argoproj.io/v1alpha1", "kind": "Application", "metadata": {"name": "maintai-local-" + name, "namespace": "argocd"},
-                                 "spec": {"project": "maintai-local", "source": {"repoURL": remote, "targetRevision": revision, "path": path},
-                                          "destination": {"server": "https://kubernetes.default.svc", "namespace": NAMESPACE},
-                                          "syncPolicy": {"automated": {"prune": False, "selfHeal": True}, "syncOptions": ["FailOnSharedResource=true", "PruneLast=true"]}}})
-            if name == "apps":
-                # HPA owns replica counts; Argo still owns images, env, probes and storage.
-                applications[-1]["spec"].update(local_autoscaling_options())
-        kube("apply", "-f", "-", namespace="argocd", stdin=yaml.safe_dump_all([project, *applications]))
-    print("Argo follows static local applications in gitops repository.")
+    kube("apply", "-k", str(local_apps), namespace="argocd")
+    print("Argo CD + Argo CD Image Updater follow static local applications in gitops repository.")
 
 
 def operator_job(component, command, owner, extra=None):
@@ -345,6 +380,10 @@ def main(argv=None):
     command = sub.add_parser("migrate"); command.add_argument("--owner", action="append", choices=["processing", "business"])
     command = sub.add_parser("activate-ordering"); command.add_argument("--legacy-writers-drained", action="store_true", required=True)
     command = sub.add_parser("delete"); command.add_argument("--confirm-delete-cluster", action="store_true", required=True)
+    command = sub.add_parser("image-updater-pat")
+    command.add_argument("--username", default="chiendz11")
+    command.add_argument("--token-file")
+    command.add_argument("--stdin", action="store_true")
     command = sub.add_parser("forward"); command.add_argument("service", choices=["argocd", "kafka", "postgres"])
     command = sub.add_parser("submit-training"); command.add_argument("--manifest", required=True)
     args = parser.parse_args(argv)
@@ -362,6 +401,7 @@ def main(argv=None):
         elif args.operation == "import-images": import_images(args)
         elif args.operation == "prepare": prepare(args)
         elif args.operation == "bootstrap-argocd": bootstrap_argocd()
+        elif args.operation == "image-updater-pat": install_image_updater_pat(args)
         elif args.operation == "migrate": migrate(args)
         elif args.operation == "grants": grants()
         elif args.operation == "provision": provision()

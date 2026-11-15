@@ -52,35 +52,16 @@ CLI không tự cài binaries hoặc ghi vào ~/.kube/config. Nếu cluster `mai
 quyền quản lý. Xuất/backup dữ liệu và chốt cutover trước; không chạy hai bộ tooling
 cùng quản lý cluster đó.
 
-## 3. Khởi tạo nền và release platform
+## 3. Khởi tạo nền, Argo CD & Argo CD Image Updater
 
 ```bash
 .venv/bin/python -m localdev up
-.venv/bin/python -m localdev build-platform
-.venv/bin/python -m localdev import-images --component minio --component mc --component dev-tools
-.venv/bin/python -m localdev prepare platform
-```
-
-`up` chỉ tạo cluster/kubeconfig riêng, chưa apply platform/app. `build-platform`
-build từ infrastructure source đã commit; source dirty bị chặn trừ khi operator
-chọn `--allow-dirty`, khi đó receipt ghi rõ dirty và snapshot hash. Không dùng
-receipt dirty như provenance production.
-
-`prepare platform` sửa duy nhất `MaintAI-gitops/environments/local/platform/`
-để thay placeholders bằng aliases `image-<actual Docker image ID>`. Nó không
-commit/push. Review GitOps diff và commit/push nhánh đúng settings, sau đó:
-
-```bash
 .venv/bin/python -m localdev bootstrap-argocd
+.venv/bin/python -m localdev image-updater-pat --username chiendz11
 .venv/bin/python -m localdev status
 ```
 
-Bootstrap tạo secrets local, cài Argo từ manifest khóa SHA256, thay images upstream
-bằng OCI digest đã ghi nhận và tạo AppProject chỉ cho remote repo đã chọn, đích
-`maintai-local`. Ba Applications đọc riêng platform/observability/apps; không đọc
-production roots. `selfHeal=true`, `prune=false` mặc định. Chưa tự đồng bộ private
-repository credentials: với repo private, operator phải cấp repository Secret
-cho Argo ngoài Git trước khi sync.
+`up` chỉ tạo cluster/kubeconfig riêng, chưa apply platform/app. `bootstrap-argocd` cài secrets local, Argo CD `v3.2.0` và Argo CD Image Updater `v1.5.0` từ manifests khóa SHA256 + OCI digest, sau đó áp dụng `applications/local/` từ `MaintAI-gitops` (`main`). `image-updater-pat` nạp Fine-grained PAT qua stdin (hoặc file `chmod 600`) trực tiếp vào `Secret/argocd-image-updater-git-creds` trong namespace `argocd` — không ghi secret vào Git. Ba Applications đọc riêng `environments/local/{platform,observability,apps}/`; không đọc production roots. `selfHeal=true`, `prune=false` mặc định. Chưa tự đồng bộ private repository credentials: với repo private, operator phải cấp repository Secret cho Argo ngoài Git trước khi sync.
 
 Platform tạo PostgreSQL17 + pgvector0.8, bốn topics12 partitions, Kafka4 KRaft
 một broker, MinIO với bảy bucket nền có versioning, Keycloak dev và TLS identity gateway.
@@ -156,18 +137,7 @@ cần reviewed base/server/SDK pins. Build từ chối FROM chưa khóa digest v
 checkout khác source lock. `--allow-dirty` chỉ ghi nhận thay đổi source ngoài
 các interface đã khóa; không bỏ qua app revision hoặc checksum review.
 
-Copy `MaintAI-gitops/profiles/local.example.json` thành một profile review được.
-Bật components thật, khai báo SHA256 các input files và đánh dấu đúng các owner
-operations đã hoàn tất. Dùng:
-
-```bash
-.venv/bin/python -m localdev prepare apps --profile /absolute/path/to/reviewed-local-profile.json
-```
-
-Review/commit/push GitOps diff. Argo mới nhận desired state đó. Sensor luôn bắt
-đầu PAUSED; Resume qua Simulator UI sau khi downstream sẵn sàng. Không coi cờ
-attestation là bằng chứng đã test: đó là quyết định operator, cần đối chiếu Job
-history/health/acceptance thực tế.
+Cập nhật app image tags trên `MaintAI-gitops` đi qua **Pull Request** do Argo CD Image Updater mở vào nhánh `main` (chỉnh `images:` trong `environments/local/apps/kustomization.yaml`) rồi CI `kubectl kustomize` + `kubeconform` validate trước khi merge. Sensor luôn bắt đầu PAUSED; Resume qua Simulator UI sau khi downstream sẵn sàng. Không coi cờ attestation là bằng chứng đã test: đó là quyết định operator, cần đối chiếu Job history/health/acceptance thực tế.
 
 ## 6. URLs và kiểm chứng về sau
 
