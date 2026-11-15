@@ -5,7 +5,7 @@ vẫn sở hữu AWS; `local/` không gọi Terraform hoặc AWS. GitOps sở h�
 trong cluster, gồm Kafka/PostgreSQL/MinIO, monitoring và ứng dụng. Hai ZIP chỉ là
 nguồn tham khảo; không giải nén đè, không dùng entrypoint hoặc config DTO cũ.
 
-**Trạng thái hiện tại (14/11/2026):** Toàn bộ PR local/Phase-2/CoreDNS đã merge vào **`main`**, đồng bộ với `MaintAI` commit `e67d42d` (`local/versions/app-source.lock.json`). Xem [CI](https://github.com/chiendz11/Maint-infrastructure/actions/workflows/ci.yml)
+**Trạng thái hiện tại (14/11/2026):** Toàn bộ PR local/Phase-2/CoreDNS đã merge vào **`main`**, đồng bộ với `MaintAI` commit `ee488ad` (`local/versions/app-source.lock.json`). Xem [CI](https://github.com/chiendz11/Maint-infrastructure/actions/workflows/ci.yml)
 và [source sync](../../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md). Các lệnh dưới đây mô tả cơ chế CLI `localdev` chi tiết (bên cạnh 1-click Terraform tại `terraform/local/`).
 
 ## 1. Bản đồ công việc
