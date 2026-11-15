@@ -17,6 +17,7 @@ Tài liệu quản lý Hạ tầng Cloud (`AWS Terraform`) và cụm **Local `k3
 ### Architecture & Governance
 - [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — Stack Terraform Production (`bootstrap`, `domain`, `platform`, `argocd`) & Local `k3d` (`CoreDNS`, `90b9f97`).
 - [PLATFORM_CONTRACT.md](architecture/PLATFORM_CONTRACT.md) — Hợp đồng bàn giao hạ tầng `platform-contract-v2` sang `MaintAI-gitops`.
+- [INFRASTRUCTURE_BLUEPRINT.md](architecture/INFRASTRUCTURE_BLUEPRINT.md) — Tài liệu mẫu chuẩn (project-agnostic) để tái sử dụng kiến trúc IaC Terraform + Local Cloud-Parity cho các dự án khác.
 - [SECURITY.md](architecture/SECURITY.md) — Ranh giới bảo mật, OIDC, IRSA, private subnets, PostgreSQL owner isolation & secrets.
 - [VERSIONING.md](architecture/VERSIONING.md) — Khóa provider/AWS pins, `local/versions/app-source.lock.json` (`ee488ad`), Iris blueprint provenance.
 
