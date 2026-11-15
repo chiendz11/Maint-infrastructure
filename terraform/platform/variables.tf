@@ -8,7 +8,7 @@ variable "vpc_cidr" {
 }
 variable "kubernetes_version" {
   type    = string
-  default = "1.33"
+  default = "1.35"
 }
 variable "eks_addon_versions" {
   type        = map(string)

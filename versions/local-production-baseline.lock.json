@@ -13,7 +13,7 @@
     "terraform/bootstrap/.terraform.lock.hcl": "ae30f867e048e943e031791a9e605b84bbd200bc886441991dca8ad5337e18f2",
     "terraform/bootstrap/backend.hcl.example": "b96dc0e504708b31d509073963d0364c3d7f067fc8013435426bdda45dc6b0cd",
     "terraform/bootstrap/versions.tf": "74b74e0878cbc02419a08a4d6bb06e6727c027a21298f722a5f0ec44659fb6ac",
-    "terraform/platform/variables.tf": "831e83d3eabf38bf47d91d11597a1c54665cf8dce6bf43df2bfd53cc11057b16",
+    "terraform/platform/variables.tf": "f959c837255eab6f1f72413d24d689164b1d1d7dbf1ba2af4e7f30663f53be27",
     "terraform/platform/.terraform.lock.hcl": "ae30f867e048e943e031791a9e605b84bbd200bc886441991dca8ad5337e18f2",
     "terraform/platform/eks.tf": "bc7e493267eaf7ec0626cccf0c5881bd8d678c223f7fc64af3d6ecb2e749d524",
     "terraform/platform/network.tf": "9a69df1887e5da31619652e17a9b48d377d1eb56da7a3dc921fcf31ee79e9db4",

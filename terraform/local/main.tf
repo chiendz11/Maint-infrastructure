@@ -57,6 +57,11 @@ resource "null_resource" "platform_bootstrap" {
       kubectl apply -f local/manifests/cluster-secret-store.yaml
       .venv/bin/python local/manifests/seed_localstack_secrets.py
       .venv/bin/python -m localdev.history seed
+
+      # 2b. cert-manager (CRDs + Controller for local Ingress & IdP TLS parity)
+      helm upgrade --install cert-manager oci://quay.io/jetstack/charts/cert-manager \
+        --version v1.21.3 -n cert-manager --create-namespace \
+        --set crds.enabled=true --wait
       
       # 3. Ingress NGINX (Simulating AWS ALB Controller)
       helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \

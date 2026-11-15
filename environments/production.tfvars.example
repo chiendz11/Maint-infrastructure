@@ -1,5 +1,5 @@
 aws_region = "ap-southeast-1"
-kubernetes_version = "1.33"
+kubernetes_version = "1.35"
 node_desired_size = 3
 node_instance_types = ["m6i.xlarge"]
 # Resolve region-supported builds as a reviewed operator task before using Terraform.
