@@ -7,8 +7,8 @@ name: CI
 permissions:
   contents: read
 jobs:
-  required:
-    name: CI / required
+  terraform-validate:
+    name: Terraform Validate & Policy
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -18,6 +18,34 @@ jobs:
       with:
         python-version: '3.12'
     - run: python scripts/source_policy.py
+    - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+      with:
+        terraform_version: 1.15.6
+        terraform_wrapper: false
+    - name: Check Terraform formatting
+      run: terraform fmt -check -recursive terraform/
+    - name: Validate all 4 Terraform production roots
+      run: |
+        set -euo pipefail
+        for root in bootstrap domain platform argocd; do
+          echo "==> Validating terraform/${root}"
+          if [ "$root" = "bootstrap" ] && [ ! -f terraform/bootstrap/backend.tf ]; then
+            cp terraform/bootstrap/backend.tf.example terraform/bootstrap/backend.tf
+          fi
+          terraform -chdir="terraform/${root}" init -backend=false -input=false -lockfile=readonly
+          terraform -chdir="terraform/${root}" validate
+        done
+
+  local-checks:
+    name: Local Tooling & Source Lock Checks
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.12'
     - name: Install locked local source-check dependencies
       run: python -m pip install -r local/requirements.lock
     - name: Check local contracts and protect AWS source
@@ -46,3 +74,10 @@ jobs:
         persist-credentials: false
     - name: Verify application Git revision and reviewed file hashes
       run: python -m localdev.checks --app-root .ci-app
+
+  required:
+    name: CI / required
+    runs-on: ubuntu-24.04
+    needs: [terraform-validate, local-checks]
+    steps:
+    - run: echo "All production Terraform static checks and local tooling checks passed."

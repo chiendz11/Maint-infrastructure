@@ -17,14 +17,19 @@ and obtain deployment authorization before using these code paths.
    minors, node/CIDR/operator role settings and remote backend configuration.
    Platform reads domain state. RDS/S3/ECR/ledger are protected from destroy.
 4. Argo CD: same cluster remote state, AWS exec authentication; keep
-   enable_gitops_root=false until GitOps repo/configuration is available. Argo CD
+   enable_gitops_root=false until GitOps repo/configuration and Image Updater
+   credentials (`argocd-image-updater-git-creds`) are available. Argo CD
    is private ClusterIP, local admin disabled and needs reviewed SSO configuration
    before interactive use. Kubernetes bootstrap remains owned by Terraform.
-5. Handoff: scripts/build_platform_contract.py exports only the allowed v2 output.
-   The dedicated platform publisher dispatches GitOps platform-reconcile, which
-   opens a PR. Dispatch success is not merge or deployment success.
-6. Seed secrets, database owners/migrations and actual workload/model image digests
-   via documented GitOps preparation. Review root enablement in infrastructure PR.
+5. Non-secret metadata handoff: `terraform/platform` publishes non-secret
+   endpoints, KMS/IAM/IRSA ARNs (including `image-updater` ECR-read IRSA),
+   ECR repositories, and Secrets Manager ARNs to AWS SSM Parameter Store
+   (`/maintai/v13/production/platform-metadata`) and Terraform outputs — no
+   cross-repo GitOps webhook dispatch is used.
+6. Seed secrets in AWS Secrets Manager (including `argocd-image-updater-git-creds`
+   Fine-grained PAT or GitHub App credentials), database owners/migrations, and
+   actual workload/model image digests via reviewed PRs in `MaintAI-gitops`.
+   Review root enablement in infrastructure PR.
 
 Optional future workflows are gated by ENABLE_INFRA_AUTOMATION=true. Apply requires
 main, environment prod and exact expected_main_sha, then creates a fresh saved plan
@@ -36,7 +41,10 @@ TERRAFORM_PLAN_ROLE_ARN, TERRAFORM_APPLY_ROLE_ARN, TFVARS_BOOTSTRAP_JSON,
 TFVARS_DOMAIN_JSON, TFVARS_PLATFORM_JSON, TFVARS_ARGOCD_JSON and publisher App metadata.
 Variables hold non-secret metadata only. Passwords/private keys are not TF inputs.
 
-PR plan covers AWS-only roots. Argo CD/Helm plans need live cluster/secret access and
+Static CI validates `terraform fmt -check -recursive` and `terraform validate`
+across all four roots (`bootstrap`, `domain`, `platform`, `argocd`) without AWS
+credentials. Live PR `terraform plan` covers AWS-only roots (`bootstrap`,
+`domain`, `platform`); Argo CD/Helm live plans need live cluster/secret access and
 are generated inside the protected apply job, not with the PR-only read role. The
 initial dependency cycle (no remote state yet) is a day-zero operator procedure,
-not an allegedly successful speculative plan. Static CI is not a Terraform plan.
+not an allegedly successful speculative plan. Static CI is not a live AWS Terraform plan.

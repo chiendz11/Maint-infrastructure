@@ -9,7 +9,7 @@ variable "state_kms_key_arn" {
   type = string
 }
 variable "enable_gitops_root" {
-  description = "Enable only after platform contract, real image digests and runtime secrets are configured."
+  description = "Enable only after runtime secrets, image-updater credentials, and reviewed GitOps production manifests are configured."
   type        = bool
   default     = false
 }

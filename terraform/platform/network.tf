@@ -2,7 +2,7 @@ resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-  tags = { Name = local.name }
+  tags                 = { Name = local.name }
 }
 resource "aws_internet_gateway" "this" { vpc_id = aws_vpc.this.id }
 resource "aws_subnet" "public" {
@@ -11,14 +11,14 @@ resource "aws_subnet" "public" {
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   availability_zone       = local.azs[count.index]
   map_public_ip_on_launch = true
-  tags = { Name = "${local.name}-public-${count.index}", "kubernetes.io/role/elb" = "1" }
+  tags                    = { Name = "${local.name}-public-${count.index}", "kubernetes.io/role/elb" = "1" }
 }
 resource "aws_subnet" "private" {
   count             = 2
   vpc_id            = aws_vpc.this.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, 10 + count.index)
   availability_zone = local.azs[count.index]
-  tags = { Name = "${local.name}-private-${count.index}", "kubernetes.io/role/internal-elb" = "1" }
+  tags              = { Name = "${local.name}-private-${count.index}", "kubernetes.io/role/internal-elb" = "1" }
 }
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id

@@ -21,8 +21,37 @@ data "aws_caller_identity" "current" {}
 data "aws_availability_zones" "available" { state = "available" }
 locals {
   name = "maintai-v13-prod"
-  azs = slice(data.aws_availability_zones.available.names, 0, 2)
-  components = toset(["ingestion-api", "processing", "business-backend", "storage-consumer", "ml-service", "training", "rag-service", "frontend", "simulator-ui", "sensor", "drift-worker", "automation", "mlflow"])
+  azs  = slice(data.aws_availability_zones.available.names, 0, 2)
+  components = toset([
+    "ingestion-api",
+    "processing-worker",
+    "processing-read-api",
+    "processing-outbox-relay",
+    "business-api",
+    "business-consumer",
+    "storage-consumer",
+    "ml-service",
+    "training",
+    "mlflow",
+    "rag-service",
+    "frontend",
+    "simulator-ui",
+    "sensor",
+    "drift-worker",
+  ])
   database_names = { processing = "processing_db", business = "business_db", drift = "drift_db", mlflow = "mlflow_db", knowledge = "knowledge_db" }
-  runtime_secrets = toset(["processing-database", "business-database", "drift-database", "mlflow-database", "knowledge-database", "llm-provider", "ingestion-auth", "processing-api-auth", "ml-api-auth", "rag-api-auth", "model-release-publisher", "gitops-automation"])
+  runtime_secrets = toset([
+    "processing-database",
+    "business-database",
+    "drift-database",
+    "mlflow-database",
+    "knowledge-database",
+    "llm-provider",
+    "ingestion-auth",
+    "processing-api-auth",
+    "ml-api-auth",
+    "rag-api-auth",
+    "model-release-publisher",
+    "argocd-image-updater-git-creds",
+  ])
 }
