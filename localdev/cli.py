@@ -20,6 +20,7 @@ from .common import (CONTEXT, CONTRACT, LOCAL, NAMESPACE, ROOT, apply, checkout,
 from .credentials import initialize, install_secrets, install_groq_secret, groq_secret_resource
 from .demo import model_identity, prepare_rag
 from .checks import verify_application_source
+from .secret_store import gitops_document, put_local_secrets
 
 
 def pins():
@@ -184,7 +185,7 @@ def _load_pinned_manifest(upstream):
 
 
 def install_image_updater_pat(args):
-    """Create Secret/argocd-image-updater-git-creds in argocd namespace via stdin."""
+    """Persist private PAT files and seed maintai/local/gitops into owned LocalStack for ESO."""
     validate_context()
     username = args.username.strip()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,38}", username):
@@ -200,25 +201,12 @@ def install_image_updater_pat(args):
         token = getpass.getpass("GitHub Fine-grained PAT: ").strip()
     if not token or len(token) > 4096 or any(ch.isspace() for ch in token):
         raise ValueError("GitHub Fine-grained PAT is empty or invalid")
-    secret_doc = {
-        "apiVersion": "v1",
-        "kind": "Secret",
-        "metadata": {
-            "name": "argocd-image-updater-git-creds",
-            "namespace": "argocd",
-            "labels": {"maintai.io/owner": "local-bootstrap"},
-        },
-        "type": "Opaque",
-        "stringData": {"username": username, "password": token},
-    }
-    kube(
-        "apply",
-        "-f",
-        "-",
-        namespace="argocd",
-        stdin=yaml.safe_dump_all([secret_doc], sort_keys=False),
-    )
-    print("Secret argocd-image-updater-git-creds installed in namespace argocd via stdin (value not logged).")
+    for filename, value in (("image-updater-username", username), ("image-updater-pat", token)):
+        target = LOCAL / "secrets" / filename
+        private_write(target, value + "\n")
+        os.chmod(target, 0o600)
+    put_local_secrets(gitops_document(username, token))
+    print("Secret maintai/local/gitops seeded in owned LocalStack for ExternalSecret argocd/argocd-image-updater-git-creds (value not logged).")
 
 
 def bootstrap_argocd():
