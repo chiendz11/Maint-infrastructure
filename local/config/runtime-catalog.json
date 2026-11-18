@@ -161,14 +161,21 @@
       "command": [
         "maintai-drift",
         "run",
-        "--config",
-        "/local/fixtures/drift.yaml"
+        "--output",
+        "/tmp/drift-report.json"
       ],
       "port": null,
-      "kind": "Job",
-      "source_status": "owner_input_required",
+      "kind": "CronJob",
+      "source_status": "implemented",
       "default_enabled": false,
-      "migration": null
+      "migration": {
+        "command": [
+          "maintai-drift",
+          "init-db"
+        ],
+        "database_env": "DRIFT_DATABASE_URL",
+        "owner": "drift"
+      }
     },
     "mlflow": {
       "dockerfile": "ml-service/mlflow/Dockerfile",
