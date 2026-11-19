@@ -21,8 +21,11 @@ class HistoryKeys(unittest.TestCase):
     def test_history_rollout_preserves_hpa_replica_ownership(self):
         value = local_autoscaling_options()
         rules = value["ignoreDifferences"]
-        self.assertIn("processing-worker", {row["name"] for row in rules})
-        self.assertNotIn("storage-consumer", {row["name"] for row in rules})
+        names = {row["name"] for row in rules}
+        self.assertIn("processing-worker", names)
+        self.assertIn("business-consumer", names)
+        self.assertNotIn("sensor", names)
+        self.assertNotIn("storage-consumer", names)
         self.assertTrue(all(row["jsonPointers"] == ["/spec/replicas"] for row in rules))
         self.assertIn("RespectIgnoreDifferences=true", value["syncPolicy"]["syncOptions"])
         self.assertFalse(value["syncPolicy"]["automated"]["prune"])

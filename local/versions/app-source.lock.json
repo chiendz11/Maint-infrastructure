@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "e365af548ec1c0fbd7017cd2cb921a30872f2c95",
-  "captured_on": "2026-11-18",
+  "source_git_sha": "94248e49bd84b112162244f62b25fd466cbf82f4",
+  "captured_on": "2026-11-20",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
     "contracts/kafka/topology.json": "04303b7d0eedd52bb1de36fc34b94e154c36055437b1ec6f0d9d88042391384b",
@@ -10,7 +10,7 @@
     "backend/business-api/src/api/config.py": "ec9137193cc237204c7cedae289ef14131b655e77508eb37dca62036d12684f9",
     "backend/business-consumer/src/config.py": "e1460d08721cd432f768787b3709483e2fa4ea1fca9efcaffb5c2d6d013cffb9",
     "processing/pyproject.toml": "03f12f617a8e08a50e2b0605e602f9321d98f489eb3a7dcfabcff324e6a3d8cf",
-    "processing/worker/src/consumer/config.py": "666cab0ad29380833facc8eff67b9be046a2ce9e616166e5cd22fcef5428c3c1",
+    "processing/worker/src/consumer/config.py": "dc52d24758c1379cedfa59f2fcfd6a6f4759b24421ec8c3f5d63eb35bc461113",
     "processing/outbox-relay/src/relay/config.py": "770c19c711343a66dd4d35fc9b15572dc451b07c4d5dcb152ac22df9f8de6438",
     "processing/read-api/src/api/config.py": "4d49bdab9b6f0e053b6da57d200db83843dfc121b1894c838e9cb104cb05228f",
     "frontend/src/app/config.ts": "34a8f315c6d328802037719b40b3df88975a398c6667fc2883921a5bdd716c37",
@@ -36,7 +36,7 @@
     "processing/outbox-relay/Dockerfile": "d8ce4d29938014c40d6d27879188273fe75080fa40806b5b041ae01467be5c4f",
     "processing/worker/Dockerfile": "2d7495446814a82d264bdce8e383303be1ce4cdf5887a166570561e1d692ab6e",
     "ml-service/inference/Dockerfile": "7bc43a744a9bbb0a2c56dba92554d42578d0c4f61343651c96a6caf367146697",
-    "ml-service/training/Dockerfile": "b7fdc260f5e3168f88e6b8c5f797d62c34265f884f8ecf14857232c2c75fbef3",
+    "ml-service/training/Dockerfile": "6c4d5fd8102043c4f2601e1bca0246e618a43f4bac3bbcead48d7f968a102810",
     "ml-service/mlflow/Dockerfile": "8a49f7406522aeebc2ab7f823760092a3a6c8cdaa6b2a59d2da085ace235241c",
     "ml-service/inference/api/local_baseline.py": "6c3c61b291db60d0b421a2b4288dd117496d4ed9509e4fbfbabd2afcb4644de7",
     "ml-service/inference/requirements-serving.txt": "219b01107889c7f813f685e72b00de59e95961907555004d79573a0684db3d21",

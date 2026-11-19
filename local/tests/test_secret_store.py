@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localdev import secret_store
+from localdev import cli, secret_store
 from localdev.secret_store import documents, gitops_document, put_local_secrets
 
 
@@ -42,7 +42,11 @@ class SecretStore(unittest.TestCase):
                         "knowledge_owner_password": "d",
                         "drift_owner_password": "e",
                     },
-                    "minio": {"storage_password": "s"},
+                    "minio": {
+                        "storage_password": "s",
+                        "training_password": "t",
+                        "inference_password": "i",
+                    },
                 }),
                 encoding="utf-8",
             )
@@ -65,3 +69,19 @@ class SecretStore(unittest.TestCase):
                 secret_store.main()
                 payload = put.call_args.args[0]
                 self.assertEqual(payload["maintai/local/gitops"], {"username": "chiendz11", "password": "pat-fixture"})
+                self.assertEqual(payload["maintai/local/training"]["AWS_ACCESS_KEY_ID"], "maintai-training")
+                self.assertEqual(payload["maintai/local/training"]["AWS_SECRET_ACCESS_KEY"], "t")
+                self.assertEqual(payload["maintai/local/inference"]["AWS_ACCESS_KEY_ID"], "maintai-inference")
+                self.assertEqual(payload["maintai/local/inference"]["AWS_SECRET_ACCESS_KEY"], "i")
+
+    def test_forward_argo_workflows_uses_isolated_loopback_forward(self):
+        with patch.object(cli, "kube") as mock_kube:
+            exit_code = cli.main(["forward", "argo-workflows"])
+        self.assertEqual(exit_code, 0)
+        mock_kube.assert_called_once_with(
+            "port-forward",
+            "--address=127.0.0.1",
+            "service/argo-workflows-server",
+            "12746:2746",
+            namespace="argo",
+        )
