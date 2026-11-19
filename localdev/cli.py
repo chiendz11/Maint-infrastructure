@@ -28,7 +28,7 @@ def pins():
 
 
 def local_autoscaling_options():
-    names = ("business-api", "frontend", "ingestion-api", "ml-service", "ml-service-shadow", "processing-worker", "rag-service")
+    names = ("business-api", "business-consumer", "frontend", "ingestion-api", "ml-service", "ml-service-shadow", "processing-worker", "rag-service")
     return {"ignoreDifferences": [{"group": "apps", "kind": "Deployment", "name": name,
                                     "jsonPointers": ["/spec/replicas"]} for name in names],
             "syncPolicy": {"automated": {"prune": False, "selfHeal": True},
@@ -372,7 +372,7 @@ def main(argv=None):
     command.add_argument("--username", default="chiendz11")
     command.add_argument("--token-file")
     command.add_argument("--stdin", action="store_true")
-    command = sub.add_parser("forward"); command.add_argument("service", choices=["argocd", "kafka", "postgres"])
+    command = sub.add_parser("forward"); command.add_argument("service", choices=["argocd", "argo-workflows", "kafka", "postgres"])
     command = sub.add_parser("submit-training"); command.add_argument("--manifest", required=True)
     args = parser.parse_args(argv)
     try:
@@ -400,7 +400,7 @@ def main(argv=None):
         elif args.operation in {"stop", "start", "delete"}:
             validate_context(); run(["k3d", "cluster", args.operation, CONTRACT["cluster_name"]])
         elif args.operation == "forward":
-            value = {"argocd": ("argocd-server", "18443:443", "argocd"), "kafka": ("kafka", "19092:19092", NAMESPACE), "postgres": ("postgres", "15432:5432", NAMESPACE)}[args.service]
+            value = {"argocd": ("argocd-server", "18443:443", "argocd"), "argo-workflows": ("argo-workflows-server", "12746:2746", "argo"), "kafka": ("kafka", "19092:19092", NAMESPACE), "postgres": ("postgres", "15432:5432", NAMESPACE)}[args.service]
             kube("port-forward", "--address=127.0.0.1", "service/" + value[0], value[1], namespace=value[2])
         return 0
     except (ValueError, KeyError, OSError, subprocess.CalledProcessError):

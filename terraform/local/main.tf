@@ -62,6 +62,15 @@ resource "null_resource" "platform_bootstrap" {
       helm upgrade --install cert-manager oci://quay.io/jetstack/charts/cert-manager \
         --version v1.21.3 -n cert-manager --create-namespace \
         --set crds.enabled=true --wait
+
+      # 2c. KEDA (CRDs + Operator + Metrics API Server for Kafka consumer lag scaling)
+      KEDA_VERSION=$(.venv/bin/python -c "import json; print(json.load(open('local/versions/platform.lock.json'))['keda']['chart_version'])")
+      KEDA_REPO=$(.venv/bin/python -c "import json; print(json.load(open('local/versions/platform.lock.json'))['keda']['chart_repo'])")
+      helm repo add kedacore "$KEDA_REPO" --force-update
+      helm repo update kedacore
+      helm upgrade --install keda kedacore/keda \
+        --version "$KEDA_VERSION" -n keda --create-namespace \
+        --set crds.install=true --wait
       
       # 3. Ingress NGINX (Simulating AWS ALB Controller)
       helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \

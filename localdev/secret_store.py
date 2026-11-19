@@ -46,6 +46,16 @@ def documents(credentials, groq_key):
             "AWS_SECRET_ACCESS_KEY": credentials["minio"]["storage_password"],
             "AWS_REGION": "us-east-1", "AWS_DEFAULT_REGION": "us-east-1",
         },
+        "maintai/local/training": {
+            "AWS_ACCESS_KEY_ID": "maintai-training",
+            "AWS_SECRET_ACCESS_KEY": credentials["minio"]["training_password"],
+            "AWS_REGION": "us-east-1", "AWS_DEFAULT_REGION": "us-east-1",
+        },
+        "maintai/local/inference": {
+            "AWS_ACCESS_KEY_ID": "maintai-inference",
+            "AWS_SECRET_ACCESS_KEY": credentials["minio"]["inference_password"],
+            "AWS_REGION": "us-east-1", "AWS_DEFAULT_REGION": "us-east-1",
+        },
         "maintai/local/llm": {"GROQ_API_KEY": groq_key},
     }
 

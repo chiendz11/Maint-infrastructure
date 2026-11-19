@@ -24,26 +24,25 @@ tải của toàn pipeline.
 
 ## 1. Hiện repo có cơ chế scale nào?
 
-Nguồn: `MaintAI-gitops/environments/local/apps/hpa.yaml`.
+MaintAI áp dụng mô hình **hybrid autoscaling** theo hai nguồn khai báo trong `MaintAI-gitops`:
+- **Kubernetes HPA (CPU)** tại `MaintAI-gitops/environments/local/apps/hpa.yaml` cho các workload HTTP / ML inference / UI.
+- **KEDA `ScaledObject` (Kafka consumer lag + CPU guardrail)** tại `MaintAI-gitops/environments/local/apps/keda.yaml` cho các Kafka consumer workload. KEDA tự tạo và quản lý HPA nội bộ (`keda-hpa-processing-worker`, `keda-hpa-business-consumer`); **không** đặt HPA thủ công trùng target để tránh xung đột.
+- **`sensor` tuyệt đối không gắn HPA/KEDA** (giữ cố định `replicas: 1`, strategy `Recreate` vì dùng chung 1 SQLite PVC `local-sensor-state`).
 
-| Workload | Min | Max | Metric HPA hiện tại |
-| --- | --- | --- | --- |
-| Business API | 1 | 4 | CPU utilization 70% |
-| Ingestion API | 1 | 4 | CPU utilization 70% |
-| Processing Worker | 1 | 4 | CPU utilization 70% |
-| ML inference chính | 1 | 4 | CPU utilization 70% |
-| Frontend | 1 | 4 | CPU utilization 70% |
-| ML shadow | 1 | 2 | CPU utilization 80% |
-| RAG | 1 | 3 | CPU utilization 75% |
+| Workload | Cơ chế | Min | Max | Trigger / Metric kích hoạt |
+| --- | --- | --- | --- | --- |
+| Business API | HPA | 1 | 4 | CPU utilization 70% |
+| Ingestion API | HPA | 1 | 4 | CPU utilization 70% |
+| ML inference chính | HPA | 1 | 4 | CPU utilization 70% |
+| Frontend | HPA | 1 | 4 | CPU utilization 70% |
+| ML shadow | HPA | 1 | 2 | CPU utilization 80% |
+| RAG | HPA | 1 | 3 | CPU utilization 75% |
+| Processing Worker | KEDA `ScaledObject` | 1 | 4 (prod: 12) | Kafka lag `local-processing-v1` trên `sensor.readings` (`lagThreshold: 20`) + CPU guardrail 70% |
+| Business Consumer | KEDA `ScaledObject` | 1 | 4 (prod: 12) | Kafka lag `local-business-prediction-v1` trên `inference.results` (`lagThreshold: 20`) + CPU guardrail 70% |
 
-Các HPA này dùng **CPU**, chưa dùng Kafka lag làm metric kích hoạt. Kafka lag
-là số đo để đánh giá pipeline trong cảnh B; chưa có cơ sở nói “Kafka thấy lag
-nên tự thêm worker” với cấu hình này.
+Với `processing-worker` và `business-consumer`, KEDA poll lag mỗi `15s`, dùng `cooldownPeriod: 180s` và `scaleDown` stabilization `300s` (giảm tối đa 1 Pod mỗi `120s`) để tránh Kafka rebalance storm và hạn chế churn generation fencing (`PROC-ORDER-01`). Giới hạn `maxReplicaCount` luôn `<= 12` tương ứng 12 partitions của topic Kafka.
 
-Business API/Processing Worker hiện có request CPU 100m cho container chính và
-25m cho adapter. Metric Resource CPU tính trên Pod, nên mốc 70% tương ứng khoảng
-87,5m trung bình/Pod ở cấu hình này; đây không phải 70% của toàn bộ CPU laptop.
-CPU sử dụng có thể vượt CPU request, nên utilization có thể lớn hơn 100%.
+Business API/Processing Worker có request CPU 100m cho container chính. Metric Resource CPU tính trên Pod, nên mốc 70% tương ứng khoảng 70m trung bình/Pod trên container chính; đây không phải 70% của toàn bộ CPU laptop. CPU sử dụng có thể vượt CPU request, nên utilization có thể lớn hơn 100%.
 Quy tắc này được mô tả trong [tài liệu HPA Kubernetes v1.35](https://v1-35.docs.kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/#support-for-resource-metrics).
 
 Ví dụ tính để giải thích, không phải số đo của MaintAI:
@@ -71,8 +70,9 @@ k() {
     --context k3d-maintai-local "$@"
 }
 k -n argocd get applications
-k -n maintai-local get hpa
-k -n maintai-local get deployment business-api processing-worker ml-service sensor
+k -n keda get pods
+k -n maintai-local get scaledobject,hpa
+k -n maintai-local get deployment business-api business-consumer processing-worker ml-service sensor
 k -n maintai-local top pods --containers
 ```
 
@@ -426,10 +426,11 @@ IdP machine scope, simulator state và ngân sách hạ tầng được chuẩn 
 
 ### 4.3. Số đo phải mở khi quay
 
-HPA/Pod của Processing và ML:
+KEDA `ScaledObject`, HPA nội bộ do KEDA quản lý (`keda-hpa-processing-worker`, `keda-hpa-business-consumer`) và Pod của Processing/ML:
 
 ```bash
-k -n maintai-local get hpa processing-worker-hpa ml-service-hpa
+k -n maintai-local get scaledobject
+k -n maintai-local get hpa keda-hpa-processing-worker keda-hpa-business-consumer ml-service-hpa
 k -n maintai-local get pods -l app.kubernetes.io/name=processing-worker
 k -n maintai-local top pods --containers
 ```
@@ -480,22 +481,15 @@ lấy p95 của HTTP list ở cảnh A làm latency của toàn pipeline.
 >
 > Em ghi lại số worker, Kafka lag và tuổi prediction trước khi đổi mức tải.
 
-**B2 — Theo dõi HPA và partition khi worker tăng, khoảng 90 giây**
+**B2 — Theo dõi KEDA (`ScaledObject` / HPA) và partition khi worker tăng, khoảng 90 giây**
 
-> HPA của Processing hiện theo CPU. Kafka lag giúp em biết consumer đang bắt kịp
-> hay bị chậm, nhưng chưa phải metric trực tiếp làm HPA tăng worker trong cấu hình này.
+> Processing Worker hiện được autoscale bằng **KEDA `ScaledObject`** theo **Kafka consumer lag** của group `local-processing-v1` trên topic `sensor.readings` (ngưỡng `lagThreshold=20`), kết hợp **CPU 70% guardrail**. Khi backlog vượt ngưỡng (hoặc CPU vượt 70%), KEDA Metrics API Server cung cấp external metric để HPA nội bộ `keda-hpa-processing-worker` đề xuất thêm replica (tối đa 4 trên local, và tối đa 12 theo số partition trên production).
 >
-> Khi có thêm worker cùng consumer group, Kafka phân phối lại các partition cho
-> các thành viên. Em nhìn CONSUMER-ID và trạng thái Pod Ready để xác nhận worker
-> mới đã thực sự nhận việc. Trong lúc rebalance có thể có một đoạn tạm chậm.
+> Khi có thêm worker cùng consumer group, Kafka phân phối lại các partition cho các thành viên. Em nhìn `CONSUMER-ID` và trạng thái Pod Ready để xác nhận worker mới đã thực sự nhận việc. KEDA được cấu hình `cooldownPeriod=180s` và `scaleDown` stabilization `300s` (tối đa giảm 1 Pod mỗi `120s`) để tránh Kafka rebalance storm và hạn chế churn generation fencing (`PROC-ORDER-01`).
 >
-> Cùng một partition tại một thời điểm thuộc về một consumer trong group này.
-> Reading cùng máy được phân vùng theo machine_id, còn worker có bộ điều phối
-> xử lý giữa các máy và giữ thứ tự, durability, offset theo thiết kế của Processing.
+> Cùng một partition tại một thời điểm thuộc về một consumer trong group này. Reading cùng máy được phân vùng theo `machine_id`, còn worker có bộ điều phối xử lý giữa các máy và giữ thứ tự, durability, offset theo thiết kế của Processing.
 
-Nếu HPA không tăng, nói đúng: “Ở mức tải này HPA chưa đề xuất thêm worker”, rồi
-phân tích metric. Muốn vẫn minh họa rebalance, chuyển sang nhánh scale chủ động ở
-mục 6, gắn nhãn rõ trong video.
+Nếu KEDA/HPA không tăng, nói đúng: “Ở mức tải này lag và CPU đều dưới ngưỡng nên KEDA chưa đề xuất thêm worker”, rồi phân tích metric (`kubectl describe scaledobject processing-worker-scaledobject`). Muốn vẫn minh họa rebalance, chuyển sang nhánh scale chủ động ở mục 6, gắn nhãn rõ trong video.
 
 **B3 — Đánh giá sau scale, khoảng 90 giây**
 
@@ -586,27 +580,27 @@ Dùng khi cần minh họa thêm worker/rebalance nhưng tải rehearsal chưa l
 hoặc muốn cho thấy người vận hành có thể chọn mức dự phòng. Đây là **manual capacity
 change qua GitOps**, không phải bằng chứng CPU đã kích hoạt autoscaling.
 
-Tại repo GitOps, sửa đúng HPA của Processing, giữ max 4 và CPU target hiện có:
+Tại repo GitOps, sửa đúng `ScaledObject` của Processing (`environments/local/apps/keda.yaml`), giữ `maxReplicaCount: 4` và triggers hiện có:
 
 ```bash
 ../Maint-infrastructure/.venv/bin/python - <<'PY'
 from pathlib import Path
 import re
 import yaml
-p = Path('environments/local/apps/hpa.yaml')
+p = Path('environments/local/apps/keda.yaml')
 text = p.read_text()
 blocks = text.split('\n---\n')
 index = next(i for i, block in enumerate(blocks)
-             if yaml.safe_load(block)['metadata']['name'] == 'processing-worker-hpa')
-hpa = yaml.safe_load(blocks[index])
-assert hpa['spec']['maxReplicas'] == 4
-hpa['spec']['minReplicas'] = 3
-updated, count = re.subn(r'(?m)^  minReplicas: [0-9]+$', '  minReplicas: 3', blocks[index])
-assert count == 1 and yaml.safe_load(updated) == hpa
+             if yaml.safe_load(block)['metadata']['name'] == 'processing-worker-scaledobject')
+so = yaml.safe_load(blocks[index])
+assert so['spec']['maxReplicaCount'] == 4
+so['spec']['minReplicaCount'] = 3
+updated, count = re.subn(r'(?m)^  minReplicaCount: [0-9]+$', '  minReplicaCount: 3', blocks[index])
+assert count == 1 and yaml.safe_load(updated) == so
 blocks[index] = updated
 p.write_text('\n---\n'.join(blocks))
 PY
-git diff -- environments/local/apps/hpa.yaml
+git diff -- environments/local/apps/keda.yaml
 ```
 
 Review/commit/push vào revision Argo đang theo dõi, rồi đợi HPA và Pod Ready.
@@ -671,9 +665,10 @@ thay đổi khác, khôi phục cấu hình đúng trước; không xóa SQLite/
 
 ## 10. Nguồn để đối chiếu
 
-- Cấu hình HPA: `MaintAI-gitops/environments/local/apps/hpa.yaml`.
-- Source CPU requests: manifests Business API/Processing Worker dưới `environments/local/apps/generated/`.
-- Quyền sở hữu replicas: `Maint-infrastructure/localdev/cli.py`, hàm `local_autoscaling_options()`.
+- Cấu hình HPA (HTTP / ML / UI): `MaintAI-gitops/environments/local/apps/hpa.yaml`.
+- Cấu hình KEDA `ScaledObject` (Kafka consumers): `MaintAI-gitops/environments/local/apps/keda.yaml` (local) và `MaintAI-gitops/environments/production/workloads/keda.yaml` (production).
+- Bootstrap KEDA operator & pin version: `Maint-infrastructure/terraform/local/main.tf` và `Maint-infrastructure/local/versions/platform.lock.json`.
+- Quyền sở hữu replicas: `Maint-infrastructure/localdev/cli.py`, hàm `local_autoscaling_options()`, và `MaintAI-gitops/applications/local/apps.yaml`.
 - Nhịp Sensor: `MaintAI/sensor/src/simulator/scheduling/engine.py`, `tick()`.
 - Identity/state: `MaintAI/sensor/src/simulator/ordering/store.py` và constructor engine.
 - Metrics source: `sensor/src/simulator/metrics.py`, `processing/worker/src/consumer/observability.py`.

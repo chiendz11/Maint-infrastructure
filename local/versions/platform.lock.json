@@ -180,6 +180,13 @@
     },
     "image_pins_complete": true
   },
+  "keda": {
+    "chart_version": "2.21.1",
+    "app_version": "2.21.1",
+    "chart_repo": "https://kedacore.github.io/charts",
+    "chart_url": "https://kedacore.github.io/charts/keda-2.21.1.tgz",
+    "chart_sha256": "76b45621e48e18c9872cdc0c46295e4cbac1236fd379d06bca38ef91d8fb883e"
+  },
   "kubectl": {
     "version": "1.35.5",
     "linux_amd64_url": "https://dl.k8s.io/release/v1.35.5/bin/linux/amd64/kubectl",
