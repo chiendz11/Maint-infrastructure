@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "source_repository": "chiendz11/MaintAI",
-  "source_git_sha": "c2bce0081dfef67345d81f1edf58996a603681ac",
+  "source_git_sha": "4195ce678b6cabaf763d5b96031daa6143c3b140",
   "captured_on": "2026-11-20",
   "files": {
     "contracts/kafka/manifest.json": "6f9ad8c184b5dd226afaa65bb26ed6fe7ac7e202f852eaef3b1794eb10ecd20e",
@@ -15,7 +15,7 @@
     "processing/read-api/src/api/config.py": "bde7e905a0311b59e6fc2e314a86bc6bec6886bd05617b6d41093245b9986fc5",
     "frontend/src/app/config.ts": "34a8f315c6d328802037719b40b3df88975a398c6667fc2883921a5bdd716c37",
     "sensor-simulator-UI/src/config.ts": "edd920a2c813fc6f89561035beb68b18bd0b3081b060e6b543da426de8616963",
-    "sensor/src/simulator/settings.py": "4f111973497db34e8aace397d8ee8ed877090286852cb3eebce610a5248c78b1",
+    "sensor/src/simulator/settings.py": "47bd87e5954f5ec0e5c125c81a801938a5ef79327b263bc06a0560d8cd699a14",
     "storage-consumer/src/maintai_storage/settings.py": "36ca53bd0fa40eb64062b58f4001d43a4e37ace39ece0c7d658746e475be5c23",
     "sensor/src/simulator/control/auth.py": "68f3d65b61ef347123f99f4252a326ac5a9a188dee1bc456d6f715bac508d3d8",
     "backend/shared/persistence/permissions.py": "de087ae9e6db6183a5bcf2d6ad265aaa6345ba833f1f74f636d69f0a091ba8ec",
