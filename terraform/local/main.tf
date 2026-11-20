@@ -75,6 +75,9 @@ resource "null_resource" "platform_bootstrap" {
       # 3. Ingress NGINX (Simulating AWS ALB Controller)
       helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
         -n ingress-nginx --create-namespace \
+        --set controller.service.type=NodePort \
+        --set controller.service.nodePorts.http=30080 \
+        --set controller.service.nodePorts.https=30443 \
         --set controller.ingressClassResource.name=alb \
         --set controller.ingressClass=alb \
         --set controller.ingressClassResource.default=true \

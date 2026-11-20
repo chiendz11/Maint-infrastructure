@@ -18,7 +18,7 @@ from .common import LOCAL, apply, checkout, kube, read, write_json
 from .credentials import initialize
 from .secret_store import put_local_secrets
 
-ISSUER = "https://127.0.0.1:18490/realms/maintai"
+ISSUER = "https://auth.maintai.localhost/realms/maintai"
 HISTORY_ISSUER = "http://127.0.0.1:18091/maintai-history"
 
 

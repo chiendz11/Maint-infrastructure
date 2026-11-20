@@ -5,40 +5,16 @@
   "cluster_name": "maintai-local",
   "context": "k3d-maintai-local",
   "api_server": "https://127.0.0.1:6550",
-  "issuer": "https://127.0.0.1:18490/realms/maintai",
+  "issuer": "https://auth.maintai.localhost/realms/maintai",
   "keycloak_internal": "http://keycloak.maintai-local.svc.cluster.local:8080/realms/maintai",
   "ports": {
-    "business": [
-      18080,
+    "ingress-http": [
+      80,
       30080
     ],
-    "simulator": [
-      18081,
-      30081
-    ],
-    "identity": [
-      18490,
-      30490
-    ],
-    "grafana": [
-      13000,
-      30000
-    ],
-    "mlflow": [
-      15000,
-      30500
-    ],
-    "prometheus": [
-      19090,
-      30900
-    ],
-    "minio": [
-      19000,
-      30990
-    ],
-    "minio-console": [
-      19001,
-      30991
+    "ingress-https": [
+      443,
+      30443
     ]
   },
   "applications": {
