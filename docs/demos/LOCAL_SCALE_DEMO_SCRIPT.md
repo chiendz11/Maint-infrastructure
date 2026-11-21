@@ -3,10 +3,7 @@
 Phiên bản 1.0 — ngày 07/11/2026. Tài liệu bổ sung cho
 [video demo chính](LOCAL_DEMO_VIDEO_SCRIPT.md).
 
-**Trạng thái bằng chứng:** đã đối chiếu cấu hình GitOps và code scheduler; chưa
-chạy tạo tải hoặc xác nhận autoscale trong lượt bổ sung tài liệu này. Lần đọc
-HPA live không kết nối được cụm local. Các mức tải/thời gian dưới đây là kế hoạch
-rehearsal, không phải kết quả benchmark đã đạt.
+**Trạng thái bằng chứng:** phần cấu hình GitOps đã được cập nhật cho **baseline vận hành local 50 máy (`M-001`..`M-050`, `50 readings/s`)** và đã đo kiểm thực tế từ đầu vào tới SSE trình duyệt (`2026-11-21`, xem `MaintAI/docs/reports/LOCAL_BASELINE_50_MACHINES_REPORT.md`). Kịch bản rehearsal dưới đây vẫn dùng làm hướng dẫn quay video; khi phát ở mức 5 máy cần chỉnh lại kỳ vọng `min/max` theo overlay hiện tại.
 
 Nên chọn một trong hai cảnh để ghép vào video chính:
 
@@ -29,16 +26,17 @@ MaintAI áp dụng mô hình **hybrid autoscaling** theo hai nguồn khai báo t
 - **KEDA `ScaledObject` (Kafka consumer lag + CPU guardrail)** tại `MaintAI-gitops/environments/local/apps/keda.yaml` cho các Kafka consumer workload. KEDA tự tạo và quản lý HPA nội bộ (`keda-hpa-processing-worker`, `keda-hpa-business-consumer`); **không** đặt HPA thủ công trùng target để tránh xung đột.
 - **`sensor` tuyệt đối không gắn HPA/KEDA** (giữ cố định `replicas: 1`, strategy `Recreate` vì dùng chung 1 SQLite PVC `local-sensor-state`).
 
-| Workload | Cơ chế | Min | Max | Trigger / Metric kích hoạt |
+| Workload | Cơ chế | Min (50/s local) | Max (50/s local) | Trigger / Metric kích hoạt |
 | --- | --- | --- | --- | --- |
 | Business API | HPA | 1 | 4 | CPU utilization 70% |
-| Ingestion API | HPA | 1 | 4 | CPU utilization 70% |
-| ML inference chính | HPA | 1 | 4 | CPU utilization 70% |
+| Ingestion API | HPA | 2 | 2 (trước: 4) | CPU utilization 70% (2 pods chia tải L4 keep-alive) |
+| ML inference chính | HPA | 2 | 2 (trước: 4) | CPU utilization 70% |
 | Frontend | HPA | 1 | 4 | CPU utilization 70% |
-| ML shadow | HPA | 1 | 2 | CPU utilization 80% |
+| ML shadow | HPA | 1 | 1 (mirror `5%`) | CPU utilization 80% |
 | RAG | HPA | 1 | 3 | CPU utilization 75% |
-| Processing Worker | KEDA `ScaledObject` | 1 | 4 (prod: 12) | Kafka lag `local-processing-v1` trên `sensor.readings` (`lagThreshold: 20`) + CPU guardrail 70% |
-| Business Consumer | KEDA `ScaledObject` | 1 | 4 (prod: 12) | Kafka lag `local-business-prediction-v1` trên `inference.results` (`lagThreshold: 20`) + CPU guardrail 70% |
+| Processing Worker | KEDA `ScaledObject` | 6 | 6 (prod: 12) | Kafka lag `local-processing-v1` trên `sensor.readings` (`lagThreshold: 20`) + CPU guardrail 70% |
+| Business Consumer | KEDA `ScaledObject` | 4 | 4 (prod: 12) | Kafka lag `local-business-live-v1` & `local-business-prediction-v1` (`lagThreshold: 20`) + CPU guardrail 70% |
+| Processing Outbox Relay | Static patch | 2 | 2 | `OUTBOX_EXECUTION_MODE=ordered`, `OUTBOX_BATCH_SIZE=64` |
 
 Với `processing-worker` và `business-consumer`, KEDA poll lag mỗi `15s`, dùng `cooldownPeriod: 180s` và `scaleDown` stabilization `300s` (giảm tối đa 1 Pod mỗi `120s`) để tránh Kafka rebalance storm và hạn chế churn generation fencing (`PROC-ORDER-01`). Giới hạn `maxReplicaCount` luôn `<= 12` tương ứng 12 partitions của topic Kafka.
 
