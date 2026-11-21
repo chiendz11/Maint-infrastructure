@@ -42,7 +42,7 @@ python3 -m venv .venv
 `init` chỉ tạo private files; chạy lại giữ nguyên credentials. Sửa
 `local/.local/settings.json`: kiểm tra GitOps URL
 `https://github.com/chiendz11/MaintAI-gitops.git`, revision `main`, đường dẫn
-app/GitOps checkout và machine_count (mặc định5, giới hạn100 cho profile).
+app/GitOps checkout và `machine_count` (`5` cho smoke, **`50` cho baseline vận hành local trên laptop 15–16 GiB RAM**, tối đa `100` theo giới hạn profile). Khi chuyển `machine_count` (`100 -> 50`) trên PVC `sensor` đã tồn tại, cần volume mới hoặc migration riêng vì guard `source_identity`; đồng thời giữ phân vùng `/data` trống `>15%` để tránh k3s `DiskPressure`.
 Settings mẫu đã có URL remote thật; `init` giữ nguyên settings riêng nếu đã tồn tại.
 Source phải được commit trước khi build; desired state phải push lên `main` trước khi Argo
 đọc được. Xem [source sync](../../MaintAI-gitops/docs/operations/LOCAL_SOURCE_SYNC.md) để đối chiếu revision app.
