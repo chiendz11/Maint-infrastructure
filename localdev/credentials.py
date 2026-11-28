@@ -33,11 +33,15 @@ def initialize():
                  "grafana_password": secrets.token_hex(24),
                  "oidc": {name + "_secret": secrets.token_hex(32) for name in ("registry", "processing", "sensor", "ml", "business_worker")},
                  "users": {name: secrets.token_hex(16) for name in ("viewer", "technician", "administrator")},
-                 "kafka_cluster_id": base64.urlsafe_b64encode(secrets.token_bytes(16)).decode().rstrip("=")}
+                 "kafka_cluster_id": base64.urlsafe_b64encode(secrets.token_bytes(16)).decode().rstrip("="),
+                 "redis_password": secrets.token_hex(24)}
         write_json(LOCAL / "credentials.json", value)
     # Extend existing local state without rotating any established credential.
     value = read(LOCAL / "credentials.json")
     changed = False
+    if "redis_password" not in value:
+        value["redis_password"] = secrets.token_hex(24)
+        changed = True
     for section, key in (("postgres", "processing_history_meta_password"), ("minio", "history_password")):
         if key not in value[section]:
             value[section][key] = secrets.token_hex(24)
@@ -118,6 +122,8 @@ def secret_resources():
              resource("local-drift-worker-env", {"DRIFT_DATABASE_URL": dsn("drift_owner", "drift", False), **aws("drift")}),
              resource("local-m7-tokens", {"rag-token": value["m7"]["rag_token"], "drift-cursor-key": value["m7"]["drift_cursor_key"]}),
              resource("local-drift-s3-env", aws("drift")),
+             resource("local-redis-auth", {"password": value["redis_password"]}),
+             resource("local-business-redis-env", {"BUSINESS_REDIS_PASSWORD": value["redis_password"]}),
              resource("local-mlflow-env", {"MLFLOW_BACKEND_STORE_URI": dsn("mlflow_owner", "mlflow", False, "postgresql+psycopg2"), "MLFLOW_S3_ENDPOINT_URL": "http://minio:9000", **aws("mlflow")})]
     for name in ("registry", "processing", "sensor", "ml", "business_worker"):
         k8s_name = name.replace("_", "-")

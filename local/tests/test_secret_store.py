@@ -52,6 +52,7 @@ class SecretStore(unittest.TestCase):
                         "rag_token": "rt-fixture",
                         "drift_cursor_key": "k" * 64,
                     },
+                    "redis_password": "redis-fixture-password",
                 }),
                 encoding="utf-8",
             )
@@ -81,6 +82,10 @@ class SecretStore(unittest.TestCase):
                 self.assertEqual(payload["maintai/local/drift"]["AWS_ACCESS_KEY_ID"], "maintai-drift")
                 self.assertEqual(payload["maintai/local/drift"]["AWS_SECRET_ACCESS_KEY"], "dr")
                 self.assertEqual(payload["maintai/local/m7"], {"rag-token": "rt-fixture", "drift-cursor-key": "k" * 64})
+                self.assertEqual(
+                    payload["maintai/local/redis"],
+                    {"password": "redis-fixture-password", "BUSINESS_REDIS_PASSWORD": "redis-fixture-password"},
+                )
 
     def test_forward_argo_workflows_uses_isolated_loopback_forward(self):
         with patch.object(cli, "kube") as mock_kube:

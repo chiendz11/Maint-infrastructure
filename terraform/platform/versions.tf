@@ -51,6 +51,7 @@ locals {
     "ml-api-auth",
     "rag-api-auth",
     "m7-tokens",
+    "business-redis",
     "mqtt-tls",
     "model-release-publisher",
     "argocd-image-updater-git-creds",

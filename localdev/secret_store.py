@@ -65,6 +65,10 @@ def documents(credentials, groq_key):
             "rag-token": credentials["m7"]["rag_token"],
             "drift-cursor-key": credentials["m7"]["drift_cursor_key"],
         },
+        "maintai/local/redis": {
+            "password": credentials["redis_password"],
+            "BUSINESS_REDIS_PASSWORD": credentials["redis_password"],
+        },
         "maintai/local/llm": {"GROQ_API_KEY": groq_key},
     }
 

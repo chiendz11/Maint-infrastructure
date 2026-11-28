@@ -110,3 +110,21 @@ variable "mqtt_ingress_cidrs" {
     error_message = "Restrict MQTT ingress to explicit edge/simulator CIDRs instead of 0.0.0.0/0."
   }
 }
+variable "cache_node_type" {
+  type    = string
+  default = "cache.t4g.micro"
+}
+variable "cache_engine_version" {
+  type    = string
+  default = "8.0"
+}
+variable "cache_num_cache_clusters" {
+  type    = number
+  default = 2
+}
+variable "cache_auth_token" {
+  type        = string
+  description = "Valkey/Redis AUTH token managed in Secrets Manager (maintai/v13/production/business-redis) and supplied out-of-band on apply/rotation."
+  sensitive   = true
+  default     = null
+}

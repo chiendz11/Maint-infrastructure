@@ -73,6 +73,7 @@ jobs:
             "PROCESSING_READ_API_URL": f"https://processing.{domain}",
             "RAG_OAUTH_SCOPE": f"https://api.{domain}/rag:brief",
             "APPROVED_DATASET_QUEUE": meta["training"]["queue_name"],
+            "BUSINESS_REDIS_URL": f"rediss://{meta['cache']['primary_endpoint']}:{meta['cache']['port']}/0",
         }
 
         target = Path("gitops/environments/production/params/params.env")

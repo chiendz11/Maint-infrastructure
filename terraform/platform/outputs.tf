@@ -6,6 +6,7 @@ locals {
     aws                   = { account_id = data.aws_caller_identity.current.account_id, region = var.aws_region }
     cluster               = { name = aws_eks_cluster.this.name, version = var.kubernetes_version, vpc_id = aws_vpc.this.id }
     database              = { host = aws_db_instance.this.address, port = 5432, logical_databases = local.database_names, pgvector_version = var.pgvector_extension_version, master_secret_arn = aws_db_instance.this.master_user_secret[0].secret_arn }
+    cache                 = { primary_endpoint = aws_elasticache_replication_group.this.primary_endpoint_address, reader_endpoint = aws_elasticache_replication_group.this.reader_endpoint_address, port = aws_elasticache_replication_group.this.port, transit_encryption_enabled = true, secret_arn = aws_secretsmanager_secret.runtime["business-redis"].arn }
     storage               = { for key, bucket in aws_s3_bucket.data : key => bucket.id }
     kms_key_arn           = aws_kms_key.data.arn
     training              = { queue_name = aws_sqs_queue.dataset.name, queue_arn = aws_sqs_queue.dataset.arn, ledger_table = aws_dynamodb_table.training.name }
