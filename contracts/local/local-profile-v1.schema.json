@@ -24,7 +24,6 @@
     "components": {
       "type": "object",
       "required": [
-        "ingestion-api",
         "processing-worker",
         "processing-read-api",
         "processing-outbox-relay",
@@ -41,73 +40,6 @@
         "training"
       ],
       "properties": {
-        "ingestion-api": {
-          "type": "object",
-          "required": [
-            "enabled",
-            "image",
-            "receipt",
-            "env",
-            "files",
-            "runtime_reviewed"
-          ],
-          "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "image": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "receipt": {
-              "type": [
-                "string",
-                "object",
-                "null"
-              ]
-            },
-            "env": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            },
-            "files": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "path",
-                  "sha256"
-                ],
-                "properties": {
-                  "path": {
-                    "type": "string",
-                    "pattern": "^/local/(datasets|models|fixtures)/[^\\r\\n]+$"
-                  },
-                  "sha256": {
-                    "type": "string",
-                    "pattern": "^[0-9a-f]{64}$"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "runtime_reviewed": {
-              "type": "boolean"
-            },
-            "schedule": {
-              "type": "string",
-              "maxLength": 100
-            },
-            "schedule_enabled": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": false
-        },
         "processing-worker": {
           "type": "object",
           "required": [

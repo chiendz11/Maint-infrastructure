@@ -40,3 +40,6 @@ ports:
 - port: 127.0.0.1:443:30443
   nodeFilters:
   - server:0
+- port: 127.0.0.1:8883:30883
+  nodeFilters:
+  - server:0

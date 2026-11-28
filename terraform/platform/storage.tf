@@ -9,7 +9,7 @@ resource "aws_kms_alias" "data" {
   target_key_id = aws_kms_key.data.key_id
 }
 resource "aws_s3_bucket" "data" {
-  for_each      = toset(["datasets", "artifacts", "raw", "knowledge"])
+  for_each      = toset(["datasets", "artifacts", "raw", "knowledge", "drift"])
   bucket        = "${local.name}-${each.key}-${data.aws_caller_identity.current.account_id}-${var.aws_region}"
   force_destroy = false
   lifecycle { prevent_destroy = true }

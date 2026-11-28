@@ -1,29 +1,40 @@
 locals {
-  issuer = replace(aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")
   service_accounts = {
-    external-secrets = "external-secrets:external-secrets"
-    external-dns     = "external-dns:external-dns"
-    load-balancer    = "kube-system:aws-load-balancer-controller"
-    ebs-csi          = "kube-system:ebs-csi-controller-sa"
-    sqs-events       = "argo-events:sqs-eventsource"
-    training         = "argo:maintai-training"
-    image-updater    = "argocd:argocd-image-updater-controller"
-    mlflow           = "maintai:mlflow"
-    ml-service       = "maintai:ml-service"
-    drift-worker     = "maintai:drift-worker"
-    sensor           = "maintai:sensor"
-    storage-consumer = "maintai:storage-consumer"
-    rag-service      = "maintai:rag-service"
+    external-secrets  = "external-secrets:external-secrets"
+    external-dns      = "external-dns:external-dns"
+    load-balancer     = "kube-system:aws-load-balancer-controller"
+    ebs-csi           = "kube-system:ebs-csi-controller-sa"
+    sqs-events        = "argo-events:sqs-eventsource"
+    training          = "argo:maintai-training"
+    image-updater     = "argocd:argocd-image-updater-controller"
+    mlflow            = "maintai:mlflow"
+    ml-service        = "maintai:ml-service"
+    drift-worker      = "maintai:drift-worker"
+    sensor            = "maintai:sensor"
+    storage-consumer  = "maintai:storage-consumer"
+    rag-service       = "maintai:rag-service"
+    business-api      = "maintai:business-api"
+    business-consumer = "maintai:business-consumer"
+    business-worker   = "maintai:business-worker"
+    redpanda-connect  = "maintai:redpanda-connect"
   }
 }
 resource "aws_iam_role" "workload" {
   for_each = local.service_accounts
   name     = "${local.name}-${each.key}"
   assume_role_policy = jsonencode({ Version = "2012-10-17", Statement = [{
-    Effect    = "Allow", Action = "sts:AssumeRoleWithWebIdentity"
-    Principal = { Federated = aws_iam_openid_connect_provider.cluster.arn }
-    Condition = { StringEquals = { "${local.issuer}:aud" = "sts.amazonaws.com", "${local.issuer}:sub" = "system:serviceaccount:${each.value}" } }
+    Effect    = "Allow"
+    Action    = ["sts:AssumeRole", "sts:TagSession"]
+    Principal = { Service = "pods.eks.amazonaws.com" }
   }] })
+}
+resource "aws_eks_pod_identity_association" "workload" {
+  for_each        = local.service_accounts
+  cluster_name    = aws_eks_cluster.this.name
+  namespace       = split(":", each.value)[0]
+  service_account = split(":", each.value)[1]
+  role_arn        = aws_iam_role.workload[each.key].arn
+  depends_on      = [aws_eks_addon.this]
 }
 resource "aws_iam_role_policy_attachment" "ebs" {
   role       = aws_iam_role.workload["ebs-csi"].name
@@ -43,7 +54,8 @@ resource "aws_iam_role_policy" "dns" {
 resource "aws_iam_role_policy" "secrets" {
   role = aws_iam_role.workload["external-secrets"].id
   policy = jsonencode({ Version = "2012-10-17", Statement = [
-    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"], Resource = concat([for secret in aws_secretsmanager_secret.runtime : secret.arn], [aws_db_instance.this.master_user_secret[0].secret_arn], tolist(var.additional_external_secret_arns)) },
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"], Resource = concat([for secret in aws_secretsmanager_secret.runtime : secret.arn], [for secret in aws_secretsmanager_secret.msk_scram : secret.arn], [aws_db_instance.this.master_user_secret[0].secret_arn], tolist(var.additional_external_secret_arns)) },
+    { Effect = "Allow", Action = ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"], Resource = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/maintai/*" },
     { Effect = "Allow", Action = ["kms:Decrypt", "kms:DescribeKey"], Resource = aws_kms_key.data.arn }
   ] })
 }
@@ -55,7 +67,9 @@ locals {
   s3_grants = {
     sensor           = { read = ["${aws_s3_bucket.data["datasets"].arn}/simulator/*"], write = [] }
     ml-service       = { read = ["${aws_s3_bucket.data["artifacts"].arn}/models/*"], write = [] }
-    drift-worker     = { read = ["${aws_s3_bucket.data["datasets"].arn}/curated/*", "${aws_s3_bucket.data["artifacts"].arn}/models/*"], write = ["${aws_s3_bucket.data["artifacts"].arn}/drift-reports/*"] }
+    drift-worker     = { read = ["${aws_s3_bucket.data["datasets"].arn}/curated/*", "${aws_s3_bucket.data["artifacts"].arn}/models/*", "${aws_s3_bucket.data["drift"].arn}/*"], write = ["${aws_s3_bucket.data["artifacts"].arn}/drift-reports/*", "${aws_s3_bucket.data["drift"].arn}/*"] }
+    business-api     = { read = ["${aws_s3_bucket.data["drift"].arn}/*"], write = [] }
+    business-worker  = { read = ["${aws_s3_bucket.data["drift"].arn}/*"], write = [] }
     storage-consumer = { read = ["${aws_s3_bucket.data["raw"].arn}/raw-sensor/*"], write = ["${aws_s3_bucket.data["raw"].arn}/raw-sensor/*"] }
     rag-service      = { read = ["${aws_s3_bucket.data["knowledge"].arn}/manuals/*"], write = [] }
     training         = { read = ["${aws_s3_bucket.data["datasets"].arn}/datasets/*", "${aws_s3_bucket.data["datasets"].arn}/curated/*", "${aws_s3_bucket.data["artifacts"].arn}/models/*"], write = ["${aws_s3_bucket.data["artifacts"].arn}/models/*", "${aws_s3_bucket.data["artifacts"].arn}/training/*"] }
@@ -76,6 +90,11 @@ resource "aws_iam_role_policy" "s3" {
 resource "aws_iam_role_policy" "mlflow_list" {
   role   = aws_iam_role.workload["mlflow"].id
   policy = jsonencode({ Version = "2012-10-17", Statement = [{ Effect = "Allow", Action = ["s3:ListBucket"], Resource = aws_s3_bucket.data["artifacts"].arn, Condition = { StringLike = { "s3:prefix" = ["mlflow", "mlflow/*"] } } }] })
+}
+resource "aws_iam_role_policy" "drift_list" {
+  for_each = toset(["business-api", "business-worker", "drift-worker"])
+  role     = aws_iam_role.workload[each.key].id
+  policy   = jsonencode({ Version = "2012-10-17", Statement = [{ Effect = "Allow", Action = ["s3:ListBucket"], Resource = aws_s3_bucket.data["drift"].arn, Condition = { StringLike = { "s3:prefix" = ["drift-reports/*", "drift-report-manifests/*"] } } }] })
 }
 resource "aws_iam_role_policy" "image_updater_ecr" {
   role = aws_iam_role.workload["image-updater"].id

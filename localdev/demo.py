@@ -1,6 +1,7 @@
 """Explicit local identity and knowledge-owner operations; no synthetic success."""
 
 import json
+from pathlib import Path
 import re
 import subprocess
 import sys
@@ -10,6 +11,7 @@ import yaml
 from .common import (
     CONTEXT,
     LOCAL,
+    NAMESPACE,
     ROOT,
     apply,
     checkout,
@@ -17,6 +19,7 @@ from .common import (
     kube,
     read,
     run,
+    validate_context,
     write_json,
 )
 from .checks import verify_application_source
@@ -167,3 +170,154 @@ def prepare_rag():
     print(
         "Knowledge schema/cache/ingestion/retrieval verified; report: local/.local/rag-knowledge-receipt.json"
     )
+
+
+def _free_loopback_port() -> int:
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def seed_approved_dataset(version="ai4i2020-local-demo-v1", prefix="hgb-interactions", dataset=None):
+    """Upload a verified dataset CSV and approved manifest into MinIO maintai-approved."""
+    import hashlib
+    import time
+    import boto3
+
+    validate_context()
+    source = Path(dataset).resolve() if dataset else checkout("app_checkout") / "sensor/data/ai4i2020.csv"
+    if not source.is_file():
+        raise FileNotFoundError(f"Dataset CSV not found: {source}")
+    credentials = read(LOCAL / "credentials.json")
+    csv_bytes = source.read_bytes()
+    csv_sha = hashlib.sha256(csv_bytes).hexdigest()
+    port = _free_loopback_port()
+    forward = subprocess.Popen(
+        [
+            "kubectl", "--kubeconfig", str(LOCAL / "kubeconfig"), "--context", CONTEXT,
+            "--namespace", NAMESPACE, "port-forward", "--address=127.0.0.1",
+            "service/minio", f"{port}:9000",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        endpoint = f"http://127.0.0.1:{port}"
+        client = boto3.client(
+            "s3",
+            endpoint_url=endpoint,
+            aws_access_key_id="maintai-root",
+            aws_secret_access_key=credentials["minio_root_password"],
+            region_name="us-east-1",
+        )
+        for _ in range(30):
+            if forward.poll() is not None:
+                raise RuntimeError(f"MinIO port-forward exited early: {forward.stderr.read()}")
+            try:
+                client.head_bucket(Bucket="maintai-approved")
+                break
+            except Exception:
+                time.sleep(0.3)
+        else:
+            raise TimeoutError("Timed out waiting for MinIO port-forward")
+
+        csv_key = f"datasets/approved/{version}.csv"
+        csv_put = client.put_object(Bucket="maintai-approved", Key=csv_key, Body=csv_bytes, ContentType="text/csv")
+        csv_vid = csv_put["VersionId"]
+        manifest = {
+            "schema_version": "1.0.0",
+            "dataset_version": version,
+            "model_version_prefix": prefix,
+            "model_family": "hgb_interactions",
+            "split_seed": 42,
+            "dataset": {
+                "bucket": "maintai-approved",
+                "key": csv_key,
+                "version_id": csv_vid,
+                "sha256": csv_sha,
+            },
+        }
+        manifest_bytes = (json.dumps(manifest, indent=2) + "\n").encode("utf-8")
+        manifest_key = f"datasets/approved/{version}.manifest.json"
+        manifest_put = client.put_object(
+            Bucket="maintai-approved", Key=manifest_key, Body=manifest_bytes, ContentType="application/json"
+        )
+        summary = {
+            "approved_dataset_version": version,
+            "dataset_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+            "approved_dataset_manifest": {
+                "bucket": "maintai-approved",
+                "key": manifest_key,
+                "version_id": manifest_put["VersionId"],
+                "sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+            },
+        }
+        print(json.dumps(summary, indent=2))
+        return summary
+    finally:
+        forward.terminate()
+        forward.wait(timeout=5)
+
+
+def sync_model_versions():
+    """Read live MinIO VersionIds for local champion/shadow models and publish to LocalStack SSM."""
+    import time
+    import boto3
+    from .secret_store import build_model_version_parameters, put_local_ssm_parameters
+
+    validate_context()
+    credentials = read(LOCAL / "credentials.json")
+    port = _free_loopback_port()
+    forward = subprocess.Popen(
+        [
+            "kubectl", "--kubeconfig", str(LOCAL / "kubeconfig"), "--context", CONTEXT,
+            "--namespace", NAMESPACE, "port-forward", "--address=127.0.0.1",
+            "service/minio", f"{port}:9000",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        client = boto3.client(
+            "s3",
+            endpoint_url=f"http://127.0.0.1:{port}",
+            aws_access_key_id="maintai-root",
+            aws_secret_access_key=credentials["minio_root_password"],
+            region_name="us-east-1",
+        )
+        for _ in range(30):
+            if forward.poll() is not None:
+                raise RuntimeError(f"MinIO port-forward exited early: {forward.stderr.read()}")
+            try:
+                client.head_bucket(Bucket="maintai-models")
+                break
+            except Exception:
+                time.sleep(0.3)
+        else:
+            raise TimeoutError("Timed out waiting for MinIO port-forward")
+
+        files = {
+            "pipeline": "pipeline.joblib",
+            "metadata": "metadata.json",
+            "evaluation": "evaluation.json",
+            "drift_reference": "drift_reference.json",
+        }
+        champion = {
+            field: client.head_object(Bucket="maintai-models", Key=f"models/logreg-baseline-v0/{filename}")["VersionId"]
+            for field, filename in files.items()
+        }
+        shadow = {
+            field: client.head_object(Bucket="maintai-models", Key=f"models/hgb-interactions-candidate-v1/{filename}")["VersionId"]
+            for field, filename in files.items()
+        }
+        parameters = build_model_version_parameters(champion, shadow)
+        put_local_ssm_parameters(parameters)
+        print("Local model VersionIds synced to LocalStack SSM Parameter Store.")
+        return parameters
+    finally:
+        forward.terminate()
+        forward.wait(timeout=5)

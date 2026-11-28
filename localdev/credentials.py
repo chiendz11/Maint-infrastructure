@@ -31,7 +31,7 @@ def initialize():
                  "minio": {name + "_password": secrets.token_hex(24) for name in users},
                  "minio_root_password": secrets.token_hex(24), "keycloak_admin_password": secrets.token_hex(24),
                  "grafana_password": secrets.token_hex(24),
-                 "oidc": {name + "_secret": secrets.token_hex(32) for name in ("registry", "processing", "sensor", "ml")},
+                 "oidc": {name + "_secret": secrets.token_hex(32) for name in ("registry", "processing", "sensor", "ml", "business_worker")},
                  "users": {name: secrets.token_hex(16) for name in ("viewer", "technician", "administrator")},
                  "kafka_cluster_id": base64.urlsafe_b64encode(secrets.token_bytes(16)).decode().rstrip("=")}
         write_json(LOCAL / "credentials.json", value)
@@ -42,6 +42,17 @@ def initialize():
         if key not in value[section]:
             value[section][key] = secrets.token_hex(24)
             changed = True
+    m7 = value.setdefault("m7", {})
+    if "m7" not in value or "rag_token" not in m7:
+        m7["rag_token"] = secrets.token_hex(24)
+        changed = True
+    if "drift_cursor_key" not in m7:
+        m7["drift_cursor_key"] = secrets.token_hex(32)
+        changed = True
+    oidc = value.setdefault("oidc", {})
+    if "business_worker_secret" not in oidc:
+        oidc["business_worker_secret"] = secrets.token_hex(32)
+        changed = True
     if changed:
         write_json(LOCAL / "credentials.json", value)
 
@@ -89,6 +100,7 @@ def secret_resources():
             resource("local-minio-bootstrap", {"root_access_key": "maintai-root", "root_secret_key": value["minio_root_password"], **s3}),
             resource("local-keycloak-admin", {"username": "admin", "password": value["keycloak_admin_password"]}),
             resource("local-idp-users", value["users"]), resource("local-grafana", {"admin-password": value["grafana_password"]}),
+            resource("local-service-tokens", {}),
             resource("local-dev-tls", {name: (LOCAL / "tls" / name).read_text() for name in ("tls.crt", "tls.key", "ca.crt")})]
     for owner in OWNERS:
         docs.append(resource("local-" + owner + "-owner", {"url": dsn(owner + "_owner", owner, False)}))
@@ -104,9 +116,12 @@ def secret_resources():
         docs.append(resource("local-" + runtime + "-env", aws(identity)))
     docs += [resource("local-rag-service-env", {"DATABASE_URL": dsn("knowledge_owner", "knowledge", False), **aws("rag")}),
              resource("local-drift-worker-env", {"DRIFT_DATABASE_URL": dsn("drift_owner", "drift", False), **aws("drift")}),
+             resource("local-m7-tokens", {"rag-token": value["m7"]["rag_token"], "drift-cursor-key": value["m7"]["drift_cursor_key"]}),
+             resource("local-drift-s3-env", aws("drift")),
              resource("local-mlflow-env", {"MLFLOW_BACKEND_STORE_URI": dsn("mlflow_owner", "mlflow", False, "postgresql+psycopg2"), "MLFLOW_S3_ENDPOINT_URL": "http://minio:9000", **aws("mlflow")})]
-    for name in ("registry", "processing", "sensor", "ml"):
-        docs.append(resource("local-oidc-" + name, {"client_id": "maintai-" + name, "client_secret": value["oidc"][name + "_secret"]}))
+    for name in ("registry", "processing", "sensor", "ml", "business_worker"):
+        k8s_name = name.replace("_", "-")
+        docs.append(resource("local-oidc-" + k8s_name, {"client_id": "maintai-" + k8s_name, "client_secret": value["oidc"][name + "_secret"]}))
     return docs
 
 

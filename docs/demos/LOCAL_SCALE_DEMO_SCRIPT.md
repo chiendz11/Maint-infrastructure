@@ -29,7 +29,7 @@ MaintAI áp dụng mô hình **hybrid autoscaling** theo hai nguồn khai báo t
 | Workload | Cơ chế | Min (50/s local) | Max (50/s local) | Trigger / Metric kích hoạt |
 | --- | --- | --- | --- | --- |
 | Business API | HPA | 1 | 4 | CPU utilization 70% |
-| Ingestion API | HPA | 2 | 2 (trước: 4) | CPU utilization 70% (2 pods chia tải L4 keep-alive) |
+| Redpanda Connect | Static Deployment | 1 | 1 | Consume `$share/maintai-ingest` từ EMQX -> Kafka |
 | ML inference chính | HPA | 2 | 2 (trước: 4) | CPU utilization 70% |
 | Frontend | HPA | 1 | 4 | CPU utilization 70% |
 | ML shadow | HPA | 1 | 1 (mirror `5%`) | CPU utilization 80% |

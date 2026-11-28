@@ -56,8 +56,49 @@ def documents(credentials, groq_key):
             "AWS_SECRET_ACCESS_KEY": credentials["minio"]["inference_password"],
             "AWS_REGION": "us-east-1", "AWS_DEFAULT_REGION": "us-east-1",
         },
+        "maintai/local/drift": {
+            "AWS_ACCESS_KEY_ID": "maintai-drift",
+            "AWS_SECRET_ACCESS_KEY": credentials["minio"]["drift_password"],
+            "AWS_REGION": "us-east-1", "AWS_DEFAULT_REGION": "us-east-1",
+        },
+        "maintai/local/m7": {
+            "rag-token": credentials["m7"]["rag_token"],
+            "drift-cursor-key": credentials["m7"]["drift_cursor_key"],
+        },
         "maintai/local/llm": {"GROQ_API_KEY": groq_key},
     }
+
+
+def put_local_ssm_parameters(parameters):
+    program = """import sys,json,boto3
+c=boto3.client('ssm',endpoint_url='http://localhost:4566',region_name='ap-southeast-1',aws_access_key_id='test',aws_secret_access_key='test')
+try:
+ for name,value in json.load(sys.stdin).items():
+  c.put_parameter(Name=name,Value=value if isinstance(value,str) else json.dumps(value),Type='String',Overwrite=True)
+except Exception as e:
+ print('Local SSM parameter write failed: '+type(e).__name__)
+ sys.exit(1)
+print('Local SSM parameters restored; no values printed.')
+"""
+    try:
+        kube("exec", "-i", "deployment/localstack", "--", "python", "-c", program,
+             namespace="localstack", stdin=json.dumps(parameters), capture=True)
+    except subprocess.CalledProcessError:
+        raise RuntimeError("Local SSM parameter write failed; check LocalStack readiness") from None
+
+
+def build_model_version_parameters(champion_versions, shadow_versions):
+    required = ("pipeline", "metadata", "evaluation", "drift_reference")
+    payload = {}
+    for role, param_name, versions in (
+        ("champion", "/maintai/local/models/champion_versions", champion_versions),
+        ("shadow", "/maintai/local/models/shadow_versions", shadow_versions),
+    ):
+        missing = [key for key in required if not versions.get(key)]
+        if missing:
+            raise ValueError(f"Missing {role} model VersionIds for keys: {', '.join(missing)}")
+        payload[param_name] = json.dumps({key: str(versions[key]) for key in required}, sort_keys=True)
+    return payload
 
 
 def gitops_document(username, pat):

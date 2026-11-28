@@ -13,6 +13,8 @@ locals {
     publishers            = { app = aws_iam_role.publisher["app"].arn, reader = aws_iam_role.gitops_reader.arn, dataset = aws_iam_role.dataset_publisher.arn }
     images                = { for key, repo in aws_ecr_repository.workload : key => repo.repository_url }
     secrets               = { for key, secret in aws_secretsmanager_secret.runtime : key => secret.arn }
+    msk                   = { cluster_arn = aws_msk_cluster.this.arn, bootstrap_brokers_sasl_scram = aws_msk_cluster.this.bootstrap_brokers_sasl_scram, scram_secrets = { for key, secret in aws_secretsmanager_secret.msk_scram : key => secret.arn } }
+    cognito               = { user_pool_id = aws_cognito_user_pool.this.id, issuer_url = "https://cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.this.id}", domain_url = "https://${aws_cognito_user_pool_domain.this.domain}.auth.${var.aws_region}.amazoncognito.com", token_url = "https://${aws_cognito_user_pool_domain.this.domain}.auth.${var.aws_region}.amazoncognito.com/oauth2/token", ui_clients = { for key, client in aws_cognito_user_pool_client.ui : key => client.id }, m2m_clients = { for key, client in aws_cognito_user_pool_client.m2m : key => client.id } }
     ingress               = { domain = data.terraform_remote_state.domain.outputs.domain_name, hosted_zone_id = data.terraform_remote_state.domain.outputs.hosted_zone_id, certificate_arn = data.terraform_remote_state.domain.outputs.validated_certificate_arn }
   }
 }
@@ -20,7 +22,7 @@ locals {
 # Non-secret AWS SSM Parameter Store handoff (replaces cross-repo dispatch webhooks).
 resource "aws_ssm_parameter" "platform_metadata" {
   name        = "/maintai/v13/production/platform-metadata"
-  description = "Non-secret MaintAI production platform endpoints, ARNs, and ECR/IRSA metadata."
+  description = "Non-secret MaintAI production platform endpoints, ARNs, and ECR/Pod Identity metadata."
   type        = "String"
   tier        = "Advanced"
   value       = jsonencode(local.platform_metadata)
@@ -37,7 +39,7 @@ output "platform_contract" {
 }
 
 output "image_updater_role_arn" {
-  description = "IRSA role ARN for argocd:argocd-image-updater-controller to read private ECR repositories."
+  description = "Pod Identity role ARN for argocd:argocd-image-updater-controller to read private ECR repositories."
   value       = aws_iam_role.workload["image-updater"].arn
 }
 

@@ -1,5 +1,5 @@
 terraform {
-  required_version = "= 1.15.6"
+  required_version = "~> 1.15.6"
   backend "s3" {
     key          = "maintai-v13/platform.tfstate"
     use_lockfile = true
@@ -23,7 +23,7 @@ locals {
   name = "maintai-v13-prod"
   azs  = slice(data.aws_availability_zones.available.names, 0, 2)
   components = toset([
-    "ingestion-api",
+    "ingestion-connect",
     "processing-worker",
     "processing-read-api",
     "processing-outbox-relay",
@@ -47,10 +47,11 @@ locals {
     "mlflow-database",
     "knowledge-database",
     "llm-provider",
-    "ingestion-auth",
     "processing-api-auth",
     "ml-api-auth",
     "rag-api-auth",
+    "m7-tokens",
+    "mqtt-tls",
     "model-release-publisher",
     "argocd-image-updater-git-creds",
   ])

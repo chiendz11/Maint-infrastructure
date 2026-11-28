@@ -28,7 +28,7 @@ def pins():
 
 
 def local_autoscaling_options():
-    names = ("business-api", "business-consumer", "frontend", "ingestion-api", "ml-service", "ml-service-shadow", "processing-worker", "rag-service")
+    names = ("business-api", "business-consumer", "frontend", "ml-service", "ml-service-shadow", "processing-worker", "rag-service")
     return {"ignoreDifferences": [{"group": "apps", "kind": "Deployment", "name": name,
                                     "jsonPointers": ["/spec/replicas"]} for name in names],
             "syncPolicy": {"automated": {"prune": False, "selfHeal": True},
@@ -358,7 +358,7 @@ def submit_training(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="MaintAI local k3d bootstrap; no Terraform/AWS execution")
     sub = parser.add_subparsers(dest="operation", required=True)
-    for name in ("init", "up", "secrets", "groq-secret", "model-identity", "prepare-rag", "bootstrap-argocd", "status", "stop", "start", "grants", "provision", "smoke-kafka"):
+    for name in ("init", "up", "secrets", "groq-secret", "model-identity", "prepare-rag", "sync-model-versions", "bootstrap-argocd", "status", "stop", "start", "grants", "provision", "smoke-kafka"):
         sub.add_parser(name)
     for name in ("build", "build-platform"):
         command = sub.add_parser(name); command.add_argument("--allow-dirty", action="store_true")
@@ -374,6 +374,10 @@ def main(argv=None):
     command.add_argument("--stdin", action="store_true")
     command = sub.add_parser("forward"); command.add_argument("service", choices=["argocd", "argo-workflows", "kafka", "postgres"])
     command = sub.add_parser("submit-training"); command.add_argument("--manifest", required=True)
+    command = sub.add_parser("seed-approved-dataset")
+    command.add_argument("--version", default="ai4i2020-local-demo-v1")
+    command.add_argument("--prefix", default="hgb-interactions")
+    command.add_argument("--dataset")
     args = parser.parse_args(argv)
     try:
         if args.operation == "init":
@@ -384,6 +388,12 @@ def main(argv=None):
         elif args.operation == "groq-secret": install_groq_secret()
         elif args.operation == "model-identity": model_identity()
         elif args.operation == "prepare-rag": prepare_rag()
+        elif args.operation == "sync-model-versions":
+            from .demo import sync_model_versions
+            sync_model_versions()
+        elif args.operation == "seed-approved-dataset":
+            from .demo import seed_approved_dataset
+            seed_approved_dataset(version=args.version, prefix=args.prefix, dataset=args.dataset)
         elif args.operation == "build": build(args)
         elif args.operation == "build-platform": build_platform(args)
         elif args.operation == "import-images": import_images(args)

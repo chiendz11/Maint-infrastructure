@@ -102,7 +102,7 @@ production networking hoặc việc nới lỏng guards của shared profile.
 ## 5. Build app, owner operations, bật pipeline
 
 ```bash
-.venv/bin/python -m localdev build --component ingestion-api --component processing-worker --component processing-read-api --component processing-outbox-relay --component business-api --component business-consumer --component storage-consumer --component sensor --component frontend --component simulator-ui
+.venv/bin/python -m localdev build --component processing-worker --component processing-read-api --component processing-outbox-relay --component business-api --component business-consumer --component storage-consumer --component sensor --component frontend --component simulator-ui
 .venv/bin/python -m localdev import-images
 .venv/bin/python -m localdev migrate
 .venv/bin/python -m localdev grants

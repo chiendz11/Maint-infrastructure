@@ -46,6 +46,11 @@ class SecretStore(unittest.TestCase):
                         "storage_password": "s",
                         "training_password": "t",
                         "inference_password": "i",
+                        "drift_password": "dr",
+                    },
+                    "m7": {
+                        "rag_token": "rt-fixture",
+                        "drift_cursor_key": "k" * 64,
                     },
                 }),
                 encoding="utf-8",
@@ -73,6 +78,9 @@ class SecretStore(unittest.TestCase):
                 self.assertEqual(payload["maintai/local/training"]["AWS_SECRET_ACCESS_KEY"], "t")
                 self.assertEqual(payload["maintai/local/inference"]["AWS_ACCESS_KEY_ID"], "maintai-inference")
                 self.assertEqual(payload["maintai/local/inference"]["AWS_SECRET_ACCESS_KEY"], "i")
+                self.assertEqual(payload["maintai/local/drift"]["AWS_ACCESS_KEY_ID"], "maintai-drift")
+                self.assertEqual(payload["maintai/local/drift"]["AWS_SECRET_ACCESS_KEY"], "dr")
+                self.assertEqual(payload["maintai/local/m7"], {"rag-token": "rt-fixture", "drift-cursor-key": "k" * 64})
 
     def test_forward_argo_workflows_uses_isolated_loopback_forward(self):
         with patch.object(cli, "kube") as mock_kube:
@@ -85,3 +93,30 @@ class SecretStore(unittest.TestCase):
             "12746:2746",
             namespace="argo",
         )
+
+
+    def test_ssm_parameter_helpers_use_stdin_and_require_all_model_keys(self):
+        champion = {
+            "pipeline": "vid-p1",
+            "metadata": "vid-m1",
+            "evaluation": "vid-e1",
+            "drift_reference": "vid-d1",
+        }
+        shadow = {
+            "pipeline": "vid-p2",
+            "metadata": "vid-m2",
+            "evaluation": "vid-e2",
+            "drift_reference": "vid-d2",
+        }
+        params = secret_store.build_model_version_parameters(champion, shadow)
+        self.assertEqual(json.loads(params["/maintai/local/models/champion_versions"]), champion)
+        self.assertEqual(json.loads(params["/maintai/local/models/shadow_versions"]), shadow)
+        with self.assertRaisesRegex(ValueError, "Missing champion"):
+            secret_store.build_model_version_parameters({"pipeline": "only"}, shadow)
+
+        with patch("localdev.secret_store.kube") as execute:
+            secret_store.put_local_ssm_parameters(params)
+        args, kwargs = execute.call_args
+        self.assertEqual(kwargs["namespace"], "localstack")
+        self.assertIn("boto3.client('ssm',endpoint_url='http://localhost:4566'", args[-1])
+        self.assertEqual(json.loads(kwargs["stdin"]), params)

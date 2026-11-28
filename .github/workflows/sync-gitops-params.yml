@@ -1,0 +1,111 @@
+name: sync-gitops-params
+'on':
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Render and validate without opening a GitOps PR
+        type: boolean
+        required: false
+        default: true
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  sync-params:
+    name: Sync Production Platform Params to GitOps
+    runs-on: ubuntu-24.04
+    environment: prod
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+    steps:
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        path: infra
+        persist-credentials: false
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: chiendz11/MaintAI-gitops
+        path: gitops
+        token: ${{ secrets.GITOPS_SYNC_TOKEN }}
+    - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+      with:
+        role-to-assume: ${{ vars.TERRAFORM_APPLY_ROLE_ARN }}
+        aws-region: ${{ vars.AWS_REGION }}
+    - name: Read platform metadata from SSM Parameter Store and update params.env
+      run: |
+        set -euo pipefail
+        python3 - <<'PY'
+        import json
+        from pathlib import Path
+        import boto3
+
+        ssm = boto3.client("ssm")
+        raw = ssm.get_parameter(Name="/maintai/v13/production/platform-metadata")["Parameter"]["Value"]
+        meta = json.loads(raw)
+
+        domain = meta["ingress"]["domain"]
+        region = meta["aws"]["region"]
+        cognito = meta["cognito"]
+        pool_id = cognito["user_pool_id"]
+        issuer = cognito["issuer_url"]
+        token_url = cognito.get("token_url") or ""
+
+        entries = {
+            "AWS_ACCOUNT_ID": meta["aws"]["account_id"],
+            "AWS_REGION": region,
+            "DOMAIN": domain,
+            "APP_HOST": f"app.{domain}",
+            "SIMULATOR_HOST": f"simulator.{domain}",
+            "CERTIFICATE_ARN": meta["ingress"]["certificate_arn"],
+            "OPERATOR_CIDRS": meta["ingress"].get("operator_cidrs", "REPLACE_WITH_OPERATOR_CIDRS"),
+            "EKS_CLUSTER_NAME": meta["cluster"]["name"],
+            "VPC_ID": meta["cluster"]["vpc_id"],
+            "DRIFT_BUCKET": meta["storage"]["drift"],
+            "ARTIFACTS_BUCKET": meta["storage"]["artifacts"],
+            "MSK_BOOTSTRAP_BROKERS": meta["msk"]["bootstrap_brokers_sasl_scram"],
+            "COGNITO_POOL_ID": pool_id,
+            "COGNITO_ISSUER": issuer,
+            "COGNITO_JWKS_URL": f"{issuer}/.well-known/jwks.json",
+            "COGNITO_TOKEN_URL": token_url,
+            "COGNITO_BUSINESS_UI_CLIENT_ID": cognito["ui_clients"]["business-ui"],
+            "COGNITO_M2M_BUSINESS_WORKER_CLIENT_ID": cognito["m2m_clients"]["business-worker"],
+            "RAG_API_URL": f"https://rag.{domain}",
+            "PROCESSING_READ_API_URL": f"https://processing.{domain}",
+            "RAG_OAUTH_SCOPE": f"https://api.{domain}/rag:brief",
+            "APPROVED_DATASET_QUEUE": meta["training"]["queue_name"],
+        }
+
+        target = Path("gitops/environments/production/params/params.env")
+        target.write_text("\n".join(f"{k}={v}" for k, v in entries.items()) + "\n", encoding="utf-8")
+        print(f"Updated {target} from SSM platform-metadata (no secrets written).")
+        PY
+    - name: Validate updated Kustomize production overlays
+      run: |
+        set -euo pipefail
+        for root in edge training workloads ml-serving; do
+          echo "==> Rendering gitops/environments/production/${root}"
+          kubectl kustomize "gitops/environments/production/${root}" > /dev/null
+        done
+    - name: Open GitOps pull request
+      if: inputs.dry_run != true
+      working-directory: gitops
+      env:
+        GH_TOKEN: ${{ secrets.GITOPS_SYNC_TOKEN }}
+      run: |
+        set -euo pipefail
+        if git diff --quiet -- environments/production/params/params.env; then
+          echo "No parameter changes detected."
+          exit 0
+        fi
+        branch="chore/sync-production-params-${GITHUB_RUN_ID}"
+        git config user.name "maintai-infra-sync[bot]"
+        git config user.email "maintai-infra-sync@users.noreply.github.com"
+        git checkout -b "${branch}"
+        git add environments/production/params/params.env
+        git commit -m "chore(prod): sync non-secret platform parameters from SSM"
+        git push origin "${branch}"
+        gh pr create \
+          --base main \
+          --head "${branch}" \
+          --title "chore(prod): sync non-secret platform parameters" \
+          --body "Automated non-secret platform metadata sync from \`/maintai/v13/production/platform-metadata\`."

@@ -1,0 +1,35 @@
+services:
+  edge-sensor:
+    image: ${MAINTAI_SENSOR_IMAGE:-maintai/sensor:local}
+    container_name: maintai-edge-simulator
+    network_mode: host
+    environment:
+      SIM_HOST: 127.0.0.1
+      SIM_PORT: "8005"
+      SIM_AUTH_MODE: jwt
+      SIM_JWKS_URL: https://auth.maintai.localhost/realms/maintai/protocol/openid-connect/certs
+      SIM_JWT_ISSUER: https://auth.maintai.localhost/realms/maintai
+      SIM_JWT_AUDIENCE: simulator-control
+      SIM_CONTROL_SCOPE: simulator:control
+      SIM_DATASET_PATH: /app/data/ai4i2020.csv
+      SIM_MACHINE_COUNT: "50"
+      SIM_INTERVAL_MS: "1000"
+      SIM_INITIAL_STATE: PAUSED
+      SIM_TRANSPORT_MODE: mqtt
+      SIM_MQTT_HOST: mqtt.maintai.localhost
+      SIM_MQTT_PORT: "8883"
+      SIM_MQTT_TLS_ENABLED: "true"
+      SIM_MQTT_CA_CERTS: /certs/ca.crt
+      SIM_MQTT_TOPIC_PREFIX: maintai/v1/site/local/machines
+      SSL_CERT_FILE: /certs/ca.crt
+    extra_hosts:
+      - "auth.maintai.localhost:127.0.0.1"
+      - "mqtt.maintai.localhost:127.0.0.1"
+    volumes:
+      - ../.local/tls/mqtt-ca.crt:/certs/ca.crt:ro
+      - ../.local/data/datasets/ai4i2020.csv:/app/data/ai4i2020.csv:ro
+      - edge_sensor_state:/app/state
+    restart: unless-stopped
+
+volumes:
+  edge_sensor_state: {}

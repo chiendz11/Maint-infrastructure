@@ -9,6 +9,7 @@ eks_addon_versions = {
   kube-proxy = "REPLACE_WITH_EXACT_EKS_BUILD"
   vpc-cni = "REPLACE_WITH_EXACT_EKS_BUILD"
   aws-ebs-csi-driver = "REPLACE_WITH_EXACT_EKS_BUILD"
+  eks-pod-identity-agent = "REPLACE_WITH_EXACT_EKS_BUILD"
 }
 postgres_engine_version = "REPLACE_WITH_POSTGRES_17_MINOR"
 pgvector_extension_version = "REPLACE_WITH_RDS_SUPPORTED_VECTOR_VERSION"
@@ -18,3 +19,7 @@ terraform_apply_role_arn = "REPLACE_WITH_BOOTSTRAP_APPLY_ROLE_ARN"
 github_oidc_provider_arn = "REPLACE_WITH_GITHUB_OIDC_PROVIDER_ARN"
 state_bucket = "REPLACE_WITH_STATE_BUCKET"
 state_kms_key_arn = "REPLACE_WITH_STATE_KMS_KEY_ARN"
+msk_kafka_version = "3.7.x"
+msk_instance_type = "kafka.m7g.large"
+cognito_domain_prefix = "REPLACE_WITH_COGNITO_DOMAIN_PREFIX"
+mqtt_ingress_cidrs = ["REPLACE_WITH_EDGE_SIMULATOR_CIDRS"]

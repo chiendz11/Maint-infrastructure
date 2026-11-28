@@ -14,8 +14,8 @@ variable "eks_addon_versions" {
   type        = map(string)
   description = "Exact AWS region/Kubernetes-compatible builds, with no most_recent resolution."
   validation {
-    condition     = alltrue([for key in ["coredns", "kube-proxy", "vpc-cni", "aws-ebs-csi-driver"] : can(regex("^v[0-9]+\\.[0-9]+\\.[0-9]+-eksbuild\\.[0-9]+$", var.eks_addon_versions[key]))])
-    error_message = "Pin all four add-ons to exact eksbuild versions."
+    condition     = alltrue([for key in ["coredns", "kube-proxy", "vpc-cni", "aws-ebs-csi-driver", "eks-pod-identity-agent"] : can(regex("^v[0-9]+\\.[0-9]+\\.[0-9]+-eksbuild\\.[0-9]+$", var.eks_addon_versions[key]))])
+    error_message = "Pin all five add-ons to exact eksbuild versions."
   }
 }
 variable "node_ami_release_version" {
@@ -89,4 +89,24 @@ variable "state_kms_key_arn" {
 variable "additional_external_secret_arns" {
   type    = set(string)
   default = []
+}
+variable "msk_kafka_version" {
+  type    = string
+  default = "3.7.x"
+}
+variable "msk_instance_type" {
+  type    = string
+  default = "kafka.m7g.large"
+}
+variable "cognito_domain_prefix" {
+  type    = string
+  default = ""
+}
+variable "mqtt_ingress_cidrs" {
+  type    = list(string)
+  default = []
+  validation {
+    condition     = !contains(var.mqtt_ingress_cidrs, "0.0.0.0/0")
+    error_message = "Restrict MQTT ingress to explicit edge/simulator CIDRs instead of 0.0.0.0/0."
+  }
 }

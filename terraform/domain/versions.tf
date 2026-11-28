@@ -1,5 +1,5 @@
 terraform {
-  required_version = "= 1.15.6"
+  required_version = "~> 1.15.6"
   backend "s3" {
     key          = "maintai-v13/domain.tfstate"
     use_lockfile = true

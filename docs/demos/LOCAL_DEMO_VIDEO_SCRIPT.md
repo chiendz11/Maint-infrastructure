@@ -170,8 +170,8 @@ Ingestion, Kafka, Processing/ML, Business và UI; sau đó vào nhánh archive.
 
 **Lời thoại:**
 
-> Sensor Simulator phát dữ liệu vào Ingestion API. API này kiểm tra thông tin
-> bao ngoài và quyền gửi, rồi đưa bản ghi vào Kafka.
+> Sensor Simulator phát dữ liệu MQTT QoS 1 qua TLS tới EMQX broker. Redpanda Connect
+> kiểm tra thông tin bao ngoài và allowlist trường hợp lệ, rồi đưa bản ghi vào Kafka.
 >
 > Processing Worker nhận bản ghi, kiểm tra chất lượng dữ liệu, gọi model suy
 > luận và áp dụng risk policy. Kết quả được lưu cùng thông tin nguồn và phiên

@@ -1,18 +1,6 @@
 {
   "schema_version": "1.0.0",
   "components": {
-    "ingestion-api": {
-      "dockerfile": "ingestion-api/Dockerfile",
-      "context": ".",
-      "command": [
-        "maintai-ingestion"
-      ],
-      "port": 8000,
-      "kind": "Deployment",
-      "source_status": "implemented",
-      "default_enabled": false,
-      "migration": null
-    },
     "processing-worker": {
       "dockerfile": "processing/worker/Dockerfile",
       "context": ".",

@@ -67,17 +67,12 @@ resource "aws_eks_node_group" "this" {
   update_config { max_unavailable = 1 }
   depends_on = [aws_iam_role_policy_attachment.nodes, aws_nat_gateway.this]
 }
-resource "aws_iam_openid_connect_provider" "cluster" {
-  url            = aws_eks_cluster.this.identity[0].oidc[0].issuer
-  client_id_list = ["sts.amazonaws.com"]
-}
 resource "aws_eks_addon" "this" {
   for_each                    = var.eks_addon_versions
   cluster_name                = aws_eks_cluster.this.name
   addon_name                  = each.key
   addon_version               = each.value
   configuration_values        = each.key == "vpc-cni" ? jsonencode({ enableNetworkPolicy = "true" }) : null
-  service_account_role_arn    = each.key == "aws-ebs-csi-driver" ? aws_iam_role.workload["ebs-csi"].arn : null
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
   depends_on                  = [aws_eks_node_group.this]
